@@ -1,0 +1,13 @@
+datasource db {
+  provider = "mysql"
+  url      = "mysql://esmp_user:esmp_password@localhost:3307/esmp_db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id    String @id @default(uuid())
+  email String @unique
+}

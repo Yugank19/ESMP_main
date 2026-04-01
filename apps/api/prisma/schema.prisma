@@ -1,0 +1,1061 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String
+  password_hash String?
+  status             String    @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
+  verification_token String?
+  token_expiry      DateTime?
+  emailVerified      Boolean   @default(false)
+  otp_code          String?
+  otp_expiry        DateTime?
+  metadata           Json?
+  last_login    DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  phone              String?
+  organization       String?
+  avatar_url         String?
+  address            String?
+  dob                DateTime?
+  bio                String?   @db.Text
+  emergency_contact  String?
+  onboarding_completed Boolean   @default(false)
+
+  roles         UserRole[]
+  projects      Project[] // As owner
+  assigned_tasks Task[]   @relation("TaskAssignee")
+  created_tasks Task[]    @relation("TaskCreator")
+  comments      TaskComment[]
+  files         File[]
+  sent_messages Message[]
+  notifications Notification[]
+  audit_logs    AuditLog[]
+  approvals     Approval[]
+
+  // Team relations
+  team_memberships  TeamMember[]
+  team_activities   TeamActivity[]
+
+  // Phase 3 relations
+  created_team_tasks TeamTask[]    @relation("TeamTaskCreator")
+  team_task_assignees TeamTaskAssignee[]
+  team_task_comments  TeamTaskComment[]
+  team_task_history   TeamTaskHistory[]
+  created_milestones  Milestone[]   @relation("MilestoneCreator")
+  progress_updates    ProgressUpdate[]
+
+  // Phase 4 relations
+  chat_messages_sent  TeamChatMessage[]  @relation("ChatMessageSender")
+  chat_reads          TeamChatRead[]
+  uploaded_files      TeamFile[]         @relation("TeamFileUploader")
+  created_folders     TeamFolder[]       @relation("TeamFolderCreator")
+  file_comments       TeamFileComment[]
+  file_versions       TeamFileVersion[]  @relation("TeamFileVersionUploader")
+  announcements       TeamAnnouncement[] @relation("AnnouncementAuthor")
+  meeting_notes       MeetingNote[]      @relation("MeetingNoteCreator")
+
+  // Phase 5 relations (employee/company only)
+  created_tickets    Ticket[]          @relation("TicketCreator")
+  assigned_tickets   Ticket[]          @relation("TicketAssignee")
+  ticket_comments    TicketComment[]
+  ticket_history     TicketHistory[]
+  ticket_attachments TicketAttachment[]
+  approval_requests  ApprovalRequest[] @relation("ApprovalRequester")
+  approval_steps     ApprovalStep[]
+  time_entries       TimeEntry[]
+  reported_bugs      Bug[]             @relation("BugReporter")
+  assigned_bugs      Bug[]             @relation("BugAssignee")
+  bug_comments       BugComment[]
+  kb_articles        KbArticle[]
+  company_announcements CompanyAnnouncement[]
+  workload_entries   WorkloadEntry[]
+
+  // Role details
+  student_detail  StudentDetail?
+  employee_detail EmployeeDetail?
+  manager_detail  ManagerDetail?
+  client_detail   ClientDetail?
+
+  @@map("users")
+}
+
+model StudentDetail {
+  id                String   @id @default(uuid())
+  user_id           String   @unique
+  college_name      String
+  course_branch     String
+  year_semester     String
+  skills            String?  @db.Text
+  internship_interest String?
+  portfolio_url     String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  user              User     @relation(fields: [user_id], references: [id])
+
+  @@map("student_details")
+}
+
+model EmployeeDetail {
+  id              String   @id @default(uuid())
+  user_id         String   @unique
+  department      String
+  designation     String
+  skills          String?  @db.Text
+  experience_level String?
+  current_team    String?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  user            User     @relation(fields: [user_id], references: [id])
+
+  @@map("employee_details")
+}
+
+model ManagerDetail {
+  id              String   @id @default(uuid())
+  user_id         String   @unique
+  department      String
+  team_handled    String?
+  authority_level String?
+  projects_handled String? @db.Text
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  user            User     @relation(fields: [user_id], references: [id])
+
+  @@map("manager_details")
+}
+
+model ClientDetail {
+  id                    String   @id @default(uuid())
+  user_id               String   @unique
+  company_name          String
+  contact_person        String
+  phone                 String
+  project_requirement   String?  @db.Text
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  user                  User     @relation(fields: [user_id], references: [id])
+
+  @@map("client_details")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+
+  users       UserRole[]
+  permissions RolePermission[]
+  workflow_steps WorkflowStep[] // Roles that can approve this step
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  role_id       String
+  permission_id String
+  role          Role       @relation(fields: [role_id], references: [id])
+  permission    Permission @relation(fields: [permission_id], references: [id])
+
+  @@id([role_id, permission_id])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  user_id String
+  role_id String
+  user    User @relation(fields: [user_id], references: [id])
+  role    Role @relation(fields: [role_id], references: [id])
+
+  @@id([user_id, role_id])
+  @@map("user_roles")
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  name        String
+  description String?   @db.Text
+  owner_id    String
+  client_id   String?   // Could link to a User with Client role, or a separate Client entity if needed
+  status      String    @default("PLANNING")
+  start_date  DateTime?
+  end_date    DateTime?
+  metadata    Json?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  owner       User      @relation(fields: [owner_id], references: [id])
+  tasks       Task[]
+  files       File[]
+  rooms       Room[]
+
+  @@map("projects")
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  project_id  String
+  title       String
+  description String?   @db.Text
+  assignee_id String?
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status      String    @default("TODO")
+  type        String    @default("TASK") // TASK, BUG, MILESTONE
+  due_date    DateTime?
+  estimate    Int?      // In minutes
+  time_logged Int?      @default(0) // In minutes
+  created_by  String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  project     Project   @relation(fields: [project_id], references: [id])
+  assignee    User?     @relation("TaskAssignee", fields: [assignee_id], references: [id])
+  creator     User      @relation("TaskCreator", fields: [created_by], references: [id])
+  comments    TaskComment[]
+  files       File[]
+
+  @@index([project_id])
+  @@index([assignee_id])
+  @@index([status])
+  @@map("tasks")
+}
+
+model TaskComment {
+  id                String   @id @default(uuid())
+  task_id           String
+  user_id           String
+  body              String   @db.Text
+  parent_comment_id String?
+  created_at        DateTime @default(now())
+
+  task              Task     @relation(fields: [task_id], references: [id])
+  user              User     @relation(fields: [user_id], references: [id])
+  parent            TaskComment? @relation("CommentReplies", fields: [parent_comment_id], references: [id])
+  replies           TaskComment[] @relation("CommentReplies")
+
+  @@map("task_comments")
+}
+
+model File {
+  id          String   @id @default(uuid())
+  owner_id    String
+  task_id     String?
+  project_id  String?
+  message_id  String?
+  s3_key      String
+  filename    String
+  version     Int      @default(1)
+  mime_type   String
+  size        Int
+  uploaded_at DateTime @default(now())
+
+  owner       User     @relation(fields: [owner_id], references: [id])
+  task        Task?    @relation(fields: [task_id], references: [id])
+  project     Project? @relation(fields: [project_id], references: [id])
+  // message relation omitted to avoid circular deps unless needed, or added later
+
+  @@map("files")
+}
+
+model Room {
+  id         String   @id @default(uuid())
+  project_id String?
+  type       String   @default("DIRECT") // DIRECT, GROUP, PROJECT
+  name       String?
+
+  project    Project? @relation(fields: [project_id], references: [id])
+  messages   Message[]
+
+  @@map("rooms")
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  room_id     String
+  sender_id   String
+  body        String   @db.Text
+  attachments Json?
+  created_at  DateTime @default(now())
+
+  room        Room     @relation(fields: [room_id], references: [id])
+  sender      User     @relation(fields: [sender_id], references: [id])
+
+  @@map("messages")
+}
+
+model Approval {
+  id           String    @id @default(uuid())
+  target_type  String    // TASK, DOCUMENT, etc.
+  target_id    String
+  approver_id  String
+  status       String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  comments     String?
+  created_at   DateTime  @default(now())
+  responded_at DateTime?
+
+  approver     User      @relation(fields: [approver_id], references: [id])
+
+  @@map("approvals")
+}
+
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  created_by  String
+  metadata    Json?
+  steps       WorkflowStep[]
+
+  @@map("workflows")
+}
+
+model WorkflowStep {
+  id            String @id @default(uuid())
+  workflow_id   String
+  step_order    Int
+  step_type     String // APPROVAL, NOTIFICATION, AUTOMATION
+  approver_role String? // Role ID required to approve
+  metadata      Json?
+
+  workflow      Workflow @relation(fields: [workflow_id], references: [id])
+  role          Role?    @relation(fields: [approver_role], references: [id])
+
+  @@map("workflow_steps")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  user_id    String
+  type       String
+  payload    Json
+  read       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  user_id       String
+  action        String
+  resource_type String
+  resource_id   String
+  change        Json?
+  ip            String?
+  created_at    DateTime @default(now())
+
+  user          User     @relation(fields: [user_id], references: [id])
+
+  @@map("audit_logs")
+}
+
+model OtpRequest {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  otp_code   String
+  expires_at DateTime
+  verified   Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@map("otp_requests")
+}
+
+// ─── Phase 2: Team Management ────────────────────────────────────────────────
+
+model Team {
+  id           String   @id @default(uuid())
+  name         String
+  description  String?  @db.Text
+  project_name String?
+  purpose      String?  @db.Text
+  visibility   String   @default("PRIVATE") // PUBLIC, PRIVATE
+  invite_code  String   @unique
+  status       String   @default("ACTIVE") // ACTIVE, ARCHIVED
+  created_by   String
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  members      TeamMember[]
+  invites      TeamInvite[]
+  activity     TeamActivity[]
+  tasks        TeamTask[]
+  milestones   Milestone[]
+  progress_updates ProgressUpdate[]
+
+  // Phase 4
+  chat_messages  TeamChatMessage[]
+  files          TeamFile[]
+  folders        TeamFolder[]
+  announcements  TeamAnnouncement[]
+  meeting_notes  MeetingNote[]
+
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  team_id   String
+  user_id   String
+  role      String   @default("MEMBER") // LEADER, MEMBER, REVIEWER, VIEWER
+  joined_at DateTime @default(now())
+  status    String   @default("ACTIVE") // ACTIVE, REMOVED
+
+  team      Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [user_id], references: [id])
+
+  @@unique([team_id, user_id])
+  @@map("team_members")
+}
+
+model TeamInvite {
+  id         String   @id @default(uuid())
+  team_id    String
+  email      String?
+  token      String   @unique @default(uuid())
+  status     String   @default("PENDING") // PENDING, ACCEPTED, EXPIRED
+  created_at DateTime @default(now())
+  expires_at DateTime
+
+  team       Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+
+  @@map("team_invites")
+}
+
+model TeamActivity {
+  id          String   @id @default(uuid())
+  team_id     String
+  user_id     String
+  action      String
+  description String?
+  created_at  DateTime @default(now())
+
+  team        Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [user_id], references: [id])
+
+  @@map("team_activity")
+}
+
+model Report {
+  id           String    @id @default(uuid())
+  name         String
+  params       Json?
+  status       String    @default("PENDING")
+  result_url   String?
+  scheduled_at DateTime?
+  completed_at DateTime?
+
+  @@map("reports")
+}
+
+// ─── Phase 3: Project & Task Management ──────────────────────────────────────
+
+model TeamTask {
+  id          String    @id @default(uuid())
+  team_id     String
+  title       String
+  description String?   @db.Text
+  priority    String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  status      String    @default("TODO")   // TODO, IN_PROGRESS, REVIEW, COMPLETED
+  start_date  DateTime?
+  due_date    DateTime?
+  estimate_hours Float?
+  created_by  String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  team        Team      @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  creator     User      @relation("TeamTaskCreator", fields: [created_by], references: [id])
+  assignees   TeamTaskAssignee[]
+  comments    TeamTaskComment[]
+  history     TeamTaskHistory[]
+  milestone_tasks MilestoneTask[]
+
+  @@index([team_id])
+  @@index([status])
+  @@map("team_tasks")
+}
+
+model TeamTaskAssignee {
+  id      String @id @default(uuid())
+  task_id String
+  user_id String
+
+  task    TeamTask @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [user_id], references: [id])
+
+  @@unique([task_id, user_id])
+  @@map("team_task_assignees")
+}
+
+model TeamTaskComment {
+  id         String   @id @default(uuid())
+  task_id    String
+  user_id    String
+  body       String   @db.Text
+  created_at DateTime @default(now())
+
+  task       TeamTask @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@map("team_task_comments")
+}
+
+model TeamTaskHistory {
+  id         String   @id @default(uuid())
+  task_id    String
+  user_id    String
+  field      String   // status, priority, assignee, etc.
+  old_value  String?
+  new_value  String?
+  created_at DateTime @default(now())
+
+  task       TeamTask @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@map("team_task_history")
+}
+
+model Milestone {
+  id          String    @id @default(uuid())
+  team_id     String
+  name        String
+  description String?   @db.Text
+  status      String    @default("NOT_STARTED") // NOT_STARTED, ONGOING, COMPLETED
+  start_date  DateTime?
+  target_date DateTime?
+  created_by  String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  team        Team      @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  creator     User      @relation("MilestoneCreator", fields: [created_by], references: [id])
+  tasks       MilestoneTask[]
+
+  @@index([team_id])
+  @@map("milestones")
+}
+
+model MilestoneTask {
+  milestone_id String
+  task_id      String
+
+  milestone    Milestone @relation(fields: [milestone_id], references: [id], onDelete: Cascade)
+  task         TeamTask  @relation(fields: [task_id], references: [id], onDelete: Cascade)
+
+  @@id([milestone_id, task_id])
+  @@map("milestone_tasks")
+}
+
+model ProgressUpdate {
+  id           String   @id @default(uuid())
+  team_id      String
+  user_id      String
+  completed    String   @db.Text
+  task_progress String?
+  blockers     String?  @db.Text
+  next_plan    String?  @db.Text
+  created_at   DateTime @default(now())
+
+  team         Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [user_id], references: [id])
+
+  @@index([team_id])
+  @@map("progress_updates")
+}
+
+// ─── Phase 4: Communication & Collaboration ───────────────────────────────────
+
+model TeamChatMessage {
+  id         String   @id @default(uuid())
+  team_id    String
+  sender_id  String
+  body       String   @db.Text
+  type       String   @default("TEXT") // TEXT, FILE, IMAGE, SYSTEM
+  file_url   String?
+  file_name  String?
+  file_size  Int?
+  is_pinned  Boolean  @default(false)
+  is_edited  Boolean  @default(false)
+  deleted_at DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  team       Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  sender     User     @relation("ChatMessageSender", fields: [sender_id], references: [id])
+  reads      TeamChatRead[]
+
+  @@index([team_id])
+  @@index([created_at])
+  @@map("team_chat_messages")
+}
+
+model TeamChatRead {
+  id         String   @id @default(uuid())
+  message_id String
+  user_id    String
+  read_at    DateTime @default(now())
+
+  message    TeamChatMessage @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  user       User            @relation(fields: [user_id], references: [id])
+
+  @@unique([message_id, user_id])
+  @@map("team_chat_reads")
+}
+
+model TeamFile {
+  id          String   @id @default(uuid())
+  team_id     String
+  folder_id   String?
+  uploaded_by String
+  name        String
+  original_name String
+  file_url    String
+  file_key    String
+  mime_type   String
+  size        Int
+  is_important Boolean @default(false)
+  description String?
+  version     Int      @default(1)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  team        Team          @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  folder      TeamFolder?   @relation(fields: [folder_id], references: [id])
+  uploader    User          @relation("TeamFileUploader", fields: [uploaded_by], references: [id])
+  comments    TeamFileComment[]
+  versions    TeamFileVersion[]
+
+  @@index([team_id])
+  @@map("team_files")
+}
+
+model TeamFolder {
+  id          String   @id @default(uuid())
+  team_id     String
+  parent_id   String?
+  name        String
+  created_by  String
+  created_at  DateTime @default(now())
+
+  team        Team         @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  parent      TeamFolder?  @relation("FolderChildren", fields: [parent_id], references: [id])
+  children    TeamFolder[] @relation("FolderChildren")
+  files       TeamFile[]
+  creator     User         @relation("TeamFolderCreator", fields: [created_by], references: [id])
+
+  @@index([team_id])
+  @@map("team_folders")
+}
+
+model TeamFileComment {
+  id         String   @id @default(uuid())
+  file_id    String
+  user_id    String
+  body       String   @db.Text
+  created_at DateTime @default(now())
+
+  file       TeamFile @relation(fields: [file_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@map("team_file_comments")
+}
+
+model TeamFileVersion {
+  id         String   @id @default(uuid())
+  file_id    String
+  version    Int
+  file_url   String
+  file_key   String
+  size       Int
+  uploaded_by String
+  created_at DateTime @default(now())
+
+  file       TeamFile @relation(fields: [file_id], references: [id], onDelete: Cascade)
+  uploader   User     @relation("TeamFileVersionUploader", fields: [uploaded_by], references: [id])
+
+  @@map("team_file_versions")
+}
+
+model TeamAnnouncement {
+  id         String   @id @default(uuid())
+  team_id    String
+  author_id  String
+  title      String
+  body       String   @db.Text
+  is_pinned  Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  team       Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  author     User     @relation("AnnouncementAuthor", fields: [author_id], references: [id])
+
+  @@index([team_id])
+  @@map("team_announcements")
+}
+
+model MeetingNote {
+  id           String   @id @default(uuid())
+  team_id      String
+  created_by   String
+  title        String
+  meeting_date DateTime
+  agenda       String?  @db.Text
+  attendees    String?  @db.Text
+  discussion   String?  @db.Text
+  action_items String?  @db.Text
+  follow_up    String?  @db.Text
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  team         Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  creator      User     @relation("MeetingNoteCreator", fields: [created_by], references: [id])
+
+  @@index([team_id])
+  @@map("meeting_notes")
+}
+
+// ─── Phase 5: Analytics, Calendar, Settings, Audit ───────────────────────────
+
+model CalendarEvent {
+  id          String    @id @default(uuid())
+  team_id     String?
+  created_by  String
+  title       String
+  description String?   @db.Text
+  type        String    @default("EVENT") // EVENT, DEADLINE, MEETING, REMINDER, MILESTONE
+  start_date  DateTime
+  end_date    DateTime?
+  all_day     Boolean   @default(false)
+  color       String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@index([team_id])
+  @@index([start_date])
+  @@map("calendar_events")
+}
+
+model UserPreference {
+  id                     String   @id @default(uuid())
+  user_id                String   @unique
+  theme                  String   @default("light")
+  language               String   @default("en")
+  notifications_enabled  Boolean  @default(true)
+  email_notifications    Boolean  @default(true)
+  desktop_notifications  Boolean  @default(false)
+  dashboard_layout       String   @default("default")
+  timezone               String   @default("UTC")
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model TeamSetting {
+  id         String   @id @default(uuid())
+  team_id    String
+  key        String
+  value      String   @db.Text
+  updated_at DateTime @updatedAt
+
+  @@unique([team_id, key])
+  @@index([team_id])
+  @@map("team_settings")
+}
+
+model AnalyticsSnapshot {
+  id           String   @id @default(uuid())
+  team_id      String?
+  user_id      String?
+  snapshot_type String  // DAILY, WEEKLY, MONTHLY
+  data         Json
+  period_start DateTime
+  period_end   DateTime
+  created_at   DateTime @default(now())
+
+  @@index([team_id])
+  @@index([snapshot_type])
+  @@map("analytics_snapshots")
+}
+
+model GeneratedReport {
+  id           String   @id @default(uuid())
+  team_id      String?
+  created_by   String
+  title        String
+  report_type  String   // TASK, TEAM_PROGRESS, MEMBER_PERFORMANCE, DEADLINE, MILESTONE, FILE_ACTIVITY, CHAT_SUMMARY
+  filters      Json?
+  data         Json
+  created_at   DateTime @default(now())
+
+  @@index([team_id])
+  @@index([created_by])
+  @@map("generated_reports")
+}
+
+// ─── Phase 5: Enterprise Core (Employee/Company Only) ────────────────────────
+
+// Ticket / Service Request System
+model Ticket {
+  id           String    @id @default(uuid())
+  ticket_no    String    @unique // e.g. TKT-0001
+  title        String
+  description  String    @db.Text
+  category     String    // IT, HR, BUG, SUPPORT, ACCESS, EQUIPMENT, LEAVE, GENERAL
+  priority     String    @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  status       String    @default("OPEN")   // OPEN, IN_PROGRESS, ON_HOLD, RESOLVED, CLOSED, CANCELLED
+  department   String?
+  created_by   String
+  assigned_to  String?
+  due_date     DateTime?
+  resolved_at  DateTime?
+  closed_at    DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  creator      User      @relation("TicketCreator",  fields: [created_by], references: [id])
+  assignee     User?     @relation("TicketAssignee", fields: [assigned_to], references: [id])
+  comments     TicketComment[]
+  history      TicketHistory[]
+  attachments  TicketAttachment[]
+
+  @@index([created_by])
+  @@index([assigned_to])
+  @@index([status])
+  @@map("tickets")
+}
+
+model TicketComment {
+  id         String   @id @default(uuid())
+  ticket_id  String
+  user_id    String
+  body       String   @db.Text
+  is_internal Boolean @default(false) // internal note vs public reply
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  ticket     Ticket   @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@index([ticket_id])
+  @@map("ticket_comments")
+}
+
+model TicketHistory {
+  id         String   @id @default(uuid())
+  ticket_id  String
+  user_id    String
+  field      String
+  old_value  String?
+  new_value  String?
+  created_at DateTime @default(now())
+
+  ticket     Ticket   @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@map("ticket_history")
+}
+
+model TicketAttachment {
+  id         String   @id @default(uuid())
+  ticket_id  String
+  uploaded_by String
+  file_url   String
+  file_name  String
+  file_size  Int
+  created_at DateTime @default(now())
+
+  ticket     Ticket   @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  uploader   User     @relation(fields: [uploaded_by], references: [id])
+
+  @@map("ticket_attachments")
+}
+
+// Approval Workflow System
+model ApprovalRequest {
+  id           String   @id @default(uuid())
+  title        String
+  type         String   // LEAVE, ACCESS, DOCUMENT, TICKET, TASK_COMPLETION, CHANGE_REQUEST
+  description  String?  @db.Text
+  requested_by String
+  status       String   @default("PENDING") // PENDING, APPROVED, REJECTED, RETURNED, CANCELLED
+  current_step Int      @default(1)
+  total_steps  Int      @default(1)
+  metadata     Json?    // extra data like leave dates, document link, etc.
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  requester    User     @relation("ApprovalRequester", fields: [requested_by], references: [id])
+  steps        ApprovalStep[]
+
+  @@index([requested_by])
+  @@index([status])
+  @@map("approval_requests")
+}
+
+model ApprovalStep {
+  id          String   @id @default(uuid())
+  request_id  String
+  step_number Int
+  approver_id String
+  role_required String? // MANAGER, ADMIN, etc.
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED, RETURNED, SKIPPED
+  comment     String?  @db.Text
+  acted_at    DateTime?
+  created_at  DateTime @default(now())
+
+  request     ApprovalRequest @relation(fields: [request_id], references: [id], onDelete: Cascade)
+  approver    User            @relation(fields: [approver_id], references: [id])
+
+  @@index([request_id])
+  @@index([approver_id])
+  @@map("approval_steps")
+}
+
+// Time Tracking System
+model TimeEntry {
+  id          String   @id @default(uuid())
+  user_id     String
+  task_id     String?  // link to TeamTask
+  ticket_id   String?  // link to Ticket
+  description String?  @db.Text
+  date        DateTime
+  hours       Float
+  is_billable Boolean  @default(false)
+  started_at  DateTime?
+  ended_at    DateTime?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user        User     @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
+  @@index([date])
+  @@map("time_entries")
+}
+
+// Bug / Issue Tracking
+model Bug {
+  id           String   @id @default(uuid())
+  title        String
+  description  String   @db.Text
+  severity     String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  priority     String   @default("MEDIUM")
+  status       String   @default("OPEN")   // OPEN, IN_PROGRESS, FIXED, TESTING, CLOSED, WONT_FIX
+  reported_by  String
+  assigned_to  String?
+  team_id      String?
+  task_id      String?
+  environment  String?  // PRODUCTION, STAGING, DEV
+  steps_to_reproduce String? @db.Text
+  expected_behavior  String? @db.Text
+  actual_behavior    String? @db.Text
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  reporter     User     @relation("BugReporter",  fields: [reported_by], references: [id])
+  assignee     User?    @relation("BugAssignee",  fields: [assigned_to], references: [id])
+  comments     BugComment[]
+
+  @@index([reported_by])
+  @@index([status])
+  @@map("bugs")
+}
+
+model BugComment {
+  id         String   @id @default(uuid())
+  bug_id     String
+  user_id    String
+  body       String   @db.Text
+  created_at DateTime @default(now())
+
+  bug        Bug      @relation(fields: [bug_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@map("bug_comments")
+}
+
+// Knowledge Base
+model KbArticle {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  body        String   @db.Text
+  category    String   // IT, HR, POLICY, PROCESS, FAQ, GENERAL
+  tags        String?
+  is_published Boolean @default(false)
+  is_pinned   Boolean  @default(false)
+  author_id   String
+  views       Int      @default(0)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  author      User     @relation(fields: [author_id], references: [id])
+
+  @@index([category])
+  @@index([is_published])
+  @@map("kb_articles")
+}
+
+// Company Announcements
+model CompanyAnnouncement {
+  id          String   @id @default(uuid())
+  title       String
+  body        String   @db.Text
+  type        String   @default("GENERAL") // GENERAL, URGENT, POLICY, HOLIDAY, MEETING, TEAM
+  target_role String?  // null = all, or EMPLOYEE, MANAGER, etc.
+  is_pinned   Boolean  @default(false)
+  author_id   String
+  expires_at  DateTime?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  author      User     @relation(fields: [author_id], references: [id])
+
+  @@index([type])
+  @@index([is_pinned])
+  @@map("company_announcements")
+}
+
+// Workload / Resource Management
+model WorkloadEntry {
+  id          String   @id @default(uuid())
+  user_id     String
+  team_id     String?
+  capacity_hours Float @default(8) // daily capacity
+  allocated_hours Float @default(0)
+  date        DateTime
+  notes       String?
+  created_at  DateTime @default(now())
+
+  user        User     @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, date])
+  @@index([user_id])
+  @@map("workload_entries")
+}
