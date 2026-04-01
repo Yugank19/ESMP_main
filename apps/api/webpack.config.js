@@ -4,19 +4,25 @@ module.exports = function (options) {
     return {
         ...options,
         externals: [
-            nodeExternals(),
+            nodeExternals({
+                allowlist: [/^@esmp\/shared/],
+            }),
+            {
+                '@fastify/static': 'commonjs @fastify/static',
+                'cache-manager': 'commonjs cache-manager',
+            },
         ],
         plugins: [
             ...(options.plugins || []),
         ],
-        resolve: {
-            ...options.resolve,
-            fallback: {
-                ...(options.resolve?.fallback || {}),
-            },
+        ignoreWarnings: [
+            { module: /@nestjs\/common/ },
+            { module: /@nestjs\/core/ },
+            { module: /express/ },
+            /Critical dependency/
+        ],
+        stats: {
+            errorDetails: true,
         },
-        // Suppress optional peer dep warnings from @nestjs/serve-static
-        ignoreWarnings: [/Module not found/],
-        externalsPresets: { node: true },
     };
 };
