@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1D4ED8;
+  --color-primary-hover: #1E40AF;
+  --color-primary-light: #EFF6FF;
+  --font-heading: var(--font-inter);
+  --font-body: var(--font-inter);
+}
+
+/* ── Light mode (default) ─────────────────────────────────────────────────── */
+:root {
+  --bg-base:        #F8FAFC;
+  --bg-surface:     #FFFFFF;
+  --bg-surface-2:   #F1F5F9;
+  --bg-surface-3:   #E2E8F0;
+  --text-primary:   #0F172A;
+  --text-secondary: #64748B;
+  --text-muted:     #94A3B8;
+  --border:         #E2E8F0;
+  --border-strong:  #CBD5E1;
+  --sidebar-bg:     #1E293B;
+  --sidebar-text:   #94A3B8;
+  --sidebar-active: #1D4ED8;
+  --header-bg:      #FFFFFF;
+  --card-bg:        #FFFFFF;
+  --input-bg:       #FFFFFF;
+  --input-focus:    #EFF6FF;
+  --scrollbar:      #CBD5E1;
+}
+
+/* ── Dark mode ────────────────────────────────────────────────────────────── */
+.dark {
+  --bg-base:        #0F172A;
+  --bg-surface:     #1E293B;
+  --bg-surface-2:   #263548;
+  --bg-surface-3:   #334155;
+  --text-primary:   #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted:     #64748B;
+  --border:         #334155;
+  --border-strong:  #475569;
+  --sidebar-bg:     #0F172A;
+  --sidebar-text:   #64748B;
+  --sidebar-active: #1D4ED8;
+  --header-bg:      #1E293B;
+  --card-bg:        #1E293B;
+  --input-bg:       #263548;
+  --input-focus:    #1e3a5f;
+  --scrollbar:      #334155;
+}
+
+* { box-sizing: border-box; }
+
+html { color-scheme: light; }
+html.dark { color-scheme: dark; }
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+/* ── Utility classes that use CSS vars ────────────────────────────────────── */
+.bg-base       { background-color: var(--bg-base); }
+.bg-surface    { background-color: var(--bg-surface); }
+.bg-surface-2  { background-color: var(--bg-surface-2); }
+.text-primary  { color: var(--text-primary); }
+.text-secondary{ color: var(--text-secondary); }
+.border-theme  { border-color: var(--border); }
+
+/* ── Cards, panels, inputs ────────────────────────────────────────────────── */
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.input-theme {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.input-theme:focus {
+  background-color: var(--input-focus);
+  border-color: #1D4ED8;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.2);
+}
+
+.input-theme::placeholder { color: var(--text-muted); }
+
+/* ── Dark mode overrides for Tailwind hardcoded classes ───────────────────── */
+.dark .bg-white          { background-color: var(--bg-surface) !important; }
+.dark .bg-\[\#F8FAFC\]   { background-color: var(--bg-base) !important; }
+.dark .bg-\[\#F1F5F9\]   { background-color: var(--bg-surface-2) !important; }
+.dark .bg-\[\#EFF6FF\]   { background-color: #1e3a5f !important; }
+.dark .text-\[\#0F172A\] { color: var(--text-primary) !important; }
+.dark .text-\[\#64748B\] { color: var(--text-secondary) !important; }
+.dark .text-\[\#94A3B8\] { color: var(--text-muted) !important; }
+.dark .border-\[\#E2E8F0\] { border-color: var(--border) !important; }
+.dark .border-\[\#F1F5F9\] { border-color: var(--bg-surface-2) !important; }
+
+/* Header */
+.dark header.bg-white { background-color: var(--header-bg) !important; }
+
+/* Inputs */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: var(--input-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder { color: var(--text-muted) !important; }
+
+/* Tables */
+.dark table { color: var(--text-primary); }
+.dark thead tr { background-color: var(--bg-surface-2) !important; }
+.dark tbody tr:hover { background-color: var(--bg-surface-2) !important; }
+
+/* Modals / overlays */
+.dark .bg-white.rounded-xl,
+.dark .bg-white.rounded-lg,
+.dark .bg-white.rounded-2xl {
+  background-color: var(--bg-surface) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-surface-2); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* Transition for smooth theme switch */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 0.15s;
+  transition-timing-function: ease;
+}
+
+/* But don't transition transforms/opacity (breaks animations) */
+.animate-spin, [class*="animate-"] {
+  transition: none !important;
+}
