@@ -22,7 +22,7 @@ export default function ChatPage() {
         const stored = localStorage.getItem('user');
         if (stored) setUser(JSON.parse(stored));
 
-        const s = io('http://localhost:4000', {
+        const s = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000', {
             auth: { token: localStorage.getItem('token') }
         });
         s.on('connect', () => s.emit('joinRoom', 'general'));
