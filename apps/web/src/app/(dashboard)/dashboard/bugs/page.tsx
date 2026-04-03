@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Bug, X } from 'lucide-react';
-import { getBugs, createBug, updateBug, addBugComment } from '@/lib/bugs-api';
+import { Plus, Bug, X, Trash2, ArrowLeft } from 'lucide-react';
+import { getBugs, createBug, updateBug, addBugComment, deleteBug } from '@/lib/bugs-api';
 
 const SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const STATUSES = ['OPEN', 'IN_PROGRESS', 'FIXED', 'TESTING', 'CLOSED', 'WONT_FIX'];
@@ -30,6 +30,11 @@ export default function BugsPage() {
     try { const b = await getBugs(filterStatus ? { status: filterStatus } : {}); setBugs(Array.isArray(b) ? b : []); } catch {}
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this bug report? This cannot be undone.')) return;
+    try { await deleteBug(id); setSelected(null); load(); } catch { alert('Failed to delete bug'); }
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     try { await createBug(form); setShowCreate(false); load(); } catch (err: any) { alert(err.message); }
@@ -52,9 +57,18 @@ export default function BugsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Bug Tracker</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Report and track bugs and issues</p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ color: 'var(--text-secondary)', background: 'var(--bg-surface-2)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Bug Tracker</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Report and track bugs and issues</p>
+          </div>
         </div>
         <button onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold text-white"
@@ -164,7 +178,13 @@ export default function BugsPage() {
           <div className="w-full max-w-xl h-full overflow-y-auto p-6 space-y-4" style={{ background: 'var(--bg-surface)' }}>
             <div className="flex items-start justify-between">
               <h2 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>{selected.title}</h2>
-              <button onClick={() => setSelected(null)}><X className="h-5 w-5" style={{ color: 'var(--text-muted)' }} /></button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => handleDelete(selected.id)} title="Delete bug"
+                  className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+                <button onClick={() => setSelected(null)}><X className="h-5 w-5" style={{ color: 'var(--text-muted)' }} /></button>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <span className={`lozenge ${SEV_COLORS[selected.severity] || 'lozenge-default'}`}>{selected.severity}</span>

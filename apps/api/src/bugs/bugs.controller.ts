@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { BugsService } from './bugs.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -12,4 +12,5 @@ export class BugsController {
   @Get(':id') findOne(@Param('id') id: string, @Request() req: any) { return this.bugsService.findOne(id, req.user.id); }
   @Patch(':id') update(@Param('id') id: string, @Request() req: any, @Body() dto: any) { return this.bugsService.update(id, req.user.id, dto); }
   @Post(':id/comments') comment(@Param('id') id: string, @Request() req: any, @Body() b: any) { return this.bugsService.addComment(id, req.user.id, b.body); }
+  @Delete(':id') deleteBug(@Param('id') id: string, @Request() req: any) { return this.bugsService.deleteBug(id, req.user.id); }
 }

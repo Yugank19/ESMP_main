@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, CheckCircle, XCircle, RotateCcw, Clock, X } from 'lucide-react';
+import { Plus, CheckCircle, XCircle, RotateCcw, Clock, X , ArrowLeft} from 'lucide-react';
 import { createApproval, getMyRequests, getPendingForMe, actOnStep } from '@/lib/approvals-api';
 
 const TYPES = ['LEAVE', 'ACCESS', 'DOCUMENT', 'TICKET', 'TASK_COMPLETION', 'CHANGE_REQUEST'];
@@ -54,9 +54,18 @@ export default function ApprovalsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Approval Workflows</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Submit and track approval requests</p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ color: 'var(--text-secondary)', background: 'var(--bg-surface-2)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Approval Workflows</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Submit and track approval requests</p>
+          </div>
         </div>
         <button onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold text-white"

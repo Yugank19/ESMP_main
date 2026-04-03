@@ -70,6 +70,13 @@ export class KbService {
     });
   }
 
+  async deleteArticle(id: string, userId: string) {
+    const roles = await this.assertNotStudent(userId);
+    if (!roles.some(r => ['MANAGER', 'ADMIN'].includes(r))) throw new ForbiddenException('Managers/Admins only');
+    await this.prisma.kbArticle.delete({ where: { id } });
+    return { message: 'Article deleted' };
+  }
+
   async getCategories(userId: string) {
     await this.assertNotStudent(userId);
     const cats = await this.prisma.kbArticle.findMany({ where: { is_published: true }, select: { category: true }, distinct: ['category'] });

@@ -6,7 +6,7 @@ import {
     Users, Crown, Settings, Copy, Check, ArrowLeft,
     UserPlus, Trash2, Lock, Globe, RefreshCw, UserMinus,
     CheckSquare, Target, TrendingUp, LayoutDashboard, Plus,
-    Search, Clock, MessageSquare, FolderOpen, Megaphone, BookOpen, Activity
+    Search, Clock, MessageSquare, FolderOpen, Megaphone, BookOpen, Activity, Video
 } from 'lucide-react';
 import { teamsApi } from '@/lib/teams-api';
 import { teamTasksApi } from '@/lib/team-tasks-api';
@@ -23,6 +23,7 @@ import FileManager from '@/components/team-collab/file-manager';
 import Announcements from '@/components/team-collab/announcements';
 import MeetingNotes from '@/components/team-collab/meeting-notes';
 import ActivityFeed from '@/components/team-collab/activity-feed';
+import VideoConference from '@/components/team-collab/video-conference';
 
 const ROLE_COLORS: Record<string, string> = {
     LEADER: 'bg-amber-100 text-amber-700',
@@ -31,7 +32,7 @@ const ROLE_COLORS: Record<string, string> = {
     VIEWER: 'bg-slate-100 text-slate-600',
 };
 
-type Tab = 'dashboard' | 'tasks' | 'milestones' | 'progress' | 'chat' | 'files' | 'announcements' | 'meetings' | 'members' | 'activity' | 'settings';
+type Tab = 'dashboard' | 'tasks' | 'milestones' | 'progress' | 'chat' | 'files' | 'announcements' | 'meetings' | 'video' | 'members' | 'activity' | 'settings';
 
 export default function TeamWorkspacePage() {
     const { id } = useParams<{ id: string }>();
@@ -196,6 +197,7 @@ export default function TeamWorkspacePage() {
         { key: 'files', label: 'Files', icon: FolderOpen },
         { key: 'announcements', label: 'Announcements', icon: Megaphone },
         { key: 'meetings', label: 'Meetings', icon: BookOpen },
+        { key: 'video', label: 'Video Call', icon: Video },
         { key: 'members', label: 'Members', icon: Users },
         { key: 'activity', label: 'Activity', icon: Activity },
         ...(isLeader ? [{ key: 'settings' as Tab, label: 'Settings', icon: Settings }] : []),
@@ -386,6 +388,18 @@ export default function TeamWorkspacePage() {
                     isLeader={isLeader}
                     members={activeMembers}
                 />
+            )}
+
+            {/* ── Video Conference Tab ── */}
+            {activeTab === 'video' && (
+                <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden" style={{ minHeight: 560 }}>
+                    <VideoConference
+                        teamId={id}
+                        teamName={team?.name || 'Team'}
+                        currentUser={currentUser}
+                        members={activeMembers}
+                    />
+                </div>
             )}
 
             {/* ── Members Tab ── */}

@@ -170,7 +170,8 @@ export class EmployeesService {
   }
 
   async getAllEmployees(requesterId: string) {
-    await this.assertManagerOrAdmin(requesterId);
+    const roles = await this.assertManagerOrAdmin(requesterId);
+    const isAdmin = roles.includes('ADMIN');
 
     const employees = await this.prisma.user.findMany({
       where: { roles: { some: { role: { name: 'EMPLOYEE' } } } },
@@ -178,7 +179,12 @@ export class EmployeesService {
       orderBy: { created_at: 'desc' },
     });
 
-    return employees.map(e => this.mapEmployee(e));
+    // ADMIN sees all employees; MANAGER sees only employees they created
+    const filtered = isAdmin
+      ? employees
+      : employees.filter(e => (e.metadata as any)?.manager_id === requesterId);
+
+    return filtered.map(e => this.mapEmployee(e));
   }
 
   private mapEmployee(e: any) {
@@ -203,10 +209,16 @@ export class EmployeesService {
     designation?: string;
     status?: string;
   }) {
-    await this.assertManagerOrAdmin(managerId);
+    const roles = await this.assertManagerOrAdmin(managerId);
+    const isAdmin = roles.includes('ADMIN');
 
     const employee = await this.prisma.user.findUnique({ where: { id: employeeId } });
     if (!employee) throw new BadRequestException('Employee not found');
+
+    // Manager can only update their own employees
+    if (!isAdmin && (employee.metadata as any)?.manager_id !== managerId) {
+      throw new ForbiddenException('You can only update employees you created');
+    }
 
     await this.prisma.user.update({
       where: { id: employeeId },
@@ -234,7 +246,17 @@ export class EmployeesService {
   }
 
   async deactivateEmployee(employeeId: string, managerId: string) {
-    await this.assertManagerOrAdmin(managerId);
+    const roles = await this.assertManagerOrAdmin(managerId);
+    const isAdmin = roles.includes('ADMIN');
+
+    const employee = await this.prisma.user.findUnique({ where: { id: employeeId } });
+    if (!employee) throw new BadRequestException('Employee not found');
+
+    // Manager can only deactivate their own employees
+    if (!isAdmin && (employee.metadata as any)?.manager_id !== managerId) {
+      throw new ForbiddenException('You can only deactivate employees you created');
+    }
+
     await this.prisma.user.update({ where: { id: employeeId }, data: { status: 'INACTIVE' } });
     return { message: 'Employee deactivated' };
   }

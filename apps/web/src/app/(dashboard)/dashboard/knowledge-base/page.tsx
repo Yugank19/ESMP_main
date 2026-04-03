@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Search, Plus, X, Pin } from 'lucide-react';
-import { getArticles, getArticle, createArticle, updateArticle } from '@/lib/kb-api';
+import { BookOpen, Search, Plus, X, Pin, Trash2, ArrowLeft } from 'lucide-react';
+import { getArticles, getArticle, createArticle, updateArticle, deleteArticle } from '@/lib/kb-api';
 
 const CATEGORIES = ['IT', 'HR', 'POLICY', 'PROCESS', 'FAQ', 'GENERAL'];
 
@@ -47,12 +47,26 @@ export default function KnowledgeBasePage() {
     try { await createArticle(form); setShowCreate(false); load(); } catch (err: any) { alert(err.message); }
   }
 
+  async function handleDeleteArticle(id: string) {
+    if (!confirm('Delete this article? This cannot be undone.')) return;
+    try { await deleteArticle(id); setSelected(null); load(); } catch { alert('Failed to delete article'); }
+  }
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Knowledge Base</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Company documentation, FAQs, and guides</p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ color: 'var(--text-secondary)', background: 'var(--bg-surface-2)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Knowledge Base</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Company documentation, FAQs, and guides</p>
+          </div>
         </div>
         {isManager && (
           <button onClick={() => setShowCreate(true)}
@@ -121,7 +135,15 @@ export default function KnowledgeBasePage() {
                 <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{selected.title}</h2>
                 <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>By {selected.author?.name} · {selected.views} views</p>
               </div>
-              <button onClick={() => setSelected(null)}><X className="h-5 w-5" style={{ color: 'var(--text-muted)' }} /></button>
+              <div className="flex items-center gap-2">
+                {isManager && (
+                  <button onClick={() => handleDeleteArticle(selected.id)} title="Delete article"
+                    className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+                <button onClick={() => setSelected(null)}><X className="h-5 w-5" style={{ color: 'var(--text-muted)' }} /></button>
+              </div>
             </div>
             <div className="prose prose-sm max-w-none text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
               {selected.body?.split('\n').map((line: string, i: number) => <p key={i} className="mb-2">{line}</p>)}

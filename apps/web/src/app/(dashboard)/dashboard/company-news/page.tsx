@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Megaphone, Pin, Plus, X } from 'lucide-react';
+import { Megaphone, Pin, Plus, X , ArrowLeft} from 'lucide-react';
 import { getAnnouncements, createAnnouncement } from '@/lib/company-announcements-api';
 
 const TYPES = ['GENERAL', 'URGENT', 'POLICY', 'HOLIDAY', 'MEETING', 'TEAM'];
@@ -44,9 +44,18 @@ export default function CompanyNewsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Company Announcements</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Company-wide news, policies, and notices</p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ color: 'var(--text-secondary)', background: 'var(--bg-surface-2)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Company Announcements</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Company-wide news, policies, and notices</p>
+          </div>
         </div>
         {isManager && (
           <button onClick={() => setShowCreate(true)}

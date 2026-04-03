@@ -153,6 +153,16 @@ export class TicketsService {
     });
   }
 
+  async deleteTicket(id: string, userId: string) {
+    const roles = await this.assertEmployeeRole(userId);
+    const isPrivileged = roles.some(r => ['MANAGER', 'ADMIN'].includes(r));
+    const ticket = await this.prisma.ticket.findUnique({ where: { id } });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+    if (!isPrivileged && ticket.created_by !== userId) throw new ForbiddenException('Access denied');
+    await this.prisma.ticket.delete({ where: { id } });
+    return { message: 'Ticket deleted' };
+  }
+
   async getStats(userId: string) {
     const roles = await this.assertEmployeeRole(userId);
     const isPrivileged = roles.some(r => ['MANAGER', 'ADMIN'].includes(r));

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -35,5 +35,10 @@ export class TicketsController {
   @Post(':id/comments')
   addComment(@Param('id') id: string, @Request() req: any, @Body() body: any) {
     return this.ticketsService.addComment(id, req.user.id, body.body, body.is_internal);
+  }
+
+  @Delete(':id')
+  deleteTicket(@Param('id') id: string, @Request() req: any) {
+    return this.ticketsService.deleteTicket(id, req.user.id);
   }
 }

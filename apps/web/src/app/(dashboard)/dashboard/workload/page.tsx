@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, AlertTriangle, CheckCircle, Clock, BarChart2 } from 'lucide-react';
+import { Users, AlertTriangle, CheckCircle, Clock, BarChart2 , ArrowLeft} from 'lucide-react';
 import { getTeamWorkload } from '@/lib/workload-api';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -56,9 +56,18 @@ export default function WorkloadPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Resource Management</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Team capacity, workload, and availability</p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ color: 'var(--text-secondary)', background: 'var(--bg-surface-2)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Resource Management</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Team capacity, workload, and availability</p>
+          </div>
         </div>
         {teams.length > 0 && (
           <select value={selectedTeam} onChange={e => setSelectedTeam(e.target.value)}

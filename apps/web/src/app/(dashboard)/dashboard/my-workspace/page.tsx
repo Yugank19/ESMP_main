@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CheckSquare, Ticket, GitBranch, Clock, Megaphone, AlertTriangle, ArrowRight } from 'lucide-react';
+import { CheckSquare, Ticket, GitBranch, Clock, Megaphone, AlertTriangle, ArrowRight , ArrowLeft} from 'lucide-react';
 import Link from 'next/link';
 import { getMyWorkload } from '@/lib/workload-api';
 import { getTicketStats } from '@/lib/tickets-api';

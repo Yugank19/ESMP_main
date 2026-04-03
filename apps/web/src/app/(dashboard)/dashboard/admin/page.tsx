@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Users, UserPlus, Search, MoreVertical, Shield } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -8,8 +9,15 @@ export default function AdminPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const router = useRouter();
 
     useEffect(() => {
+        // Guard: only ADMIN can access this page
+        const stored = localStorage.getItem('user');
+        if (!stored) { router.replace('/login'); return; }
+        const role = (JSON.parse(stored).roles?.[0] || '').toUpperCase();
+        if (role !== 'ADMIN') { router.replace('/dashboard'); return; }
+
         api.get('/admin/users')
             .then(r => setUsers(r.data))
             .catch(console.error)

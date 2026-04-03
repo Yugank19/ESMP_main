@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Users, UserPlus, Search, Edit2, UserX, X, Check,
   Mail, Phone, Building, Briefcase, RefreshCw, AlertCircle,
   ShieldCheck, ArrowRight, Loader2
-} from 'lucide-react';
+, ArrowLeft} from 'lucide-react';
 import { getEmployees, getDepartments, createEmployee, updateEmployee, deactivateEmployee, sendEmployeeOtp, verifyEmployeeOtp } from '@/lib/employees-api';
 
 const DESIGNATIONS = [
@@ -193,11 +193,18 @@ export default function EmployeeManagementPage() {
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Employee Management</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-            Create and manage employee accounts for your team
-          </p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ color: 'var(--text-secondary)', background: 'var(--bg-surface-2)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Employee Management</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Create and manage employee accounts for your team</p>
+          </div>
         </div>
         <button onClick={openAddModal}
           className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold text-white transition-colors"

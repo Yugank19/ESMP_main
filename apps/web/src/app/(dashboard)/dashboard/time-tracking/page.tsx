@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Clock, Trash2, X } from 'lucide-react';
+import { Plus, Clock, Trash2, X , ArrowLeft} from 'lucide-react';
 import { logTime, getMyEntries, getWeeklySheet, deleteTimeEntry } from '@/lib/time-tracking-api';
 
 export default function TimeTrackingPage() {
@@ -43,9 +43,18 @@ export default function TimeTrackingPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Time Tracking</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Log and review your work hours</p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ color: 'var(--text-secondary)', background: 'var(--bg-surface-2)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Time Tracking</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Log and review your work hours</p>
+          </div>
         </div>
         <button onClick={() => setShowLog(true)}
           className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold text-white"

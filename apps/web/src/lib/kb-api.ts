@@ -6,3 +6,4 @@ export const getArticle = (id: string) => fetch(`${API}/knowledge-base/${id}`, {
 export const getCategories = () => fetch(`${API}/knowledge-base/categories`, { headers: h() }).then(r => r.json());
 export const createArticle = (dto: any) => fetch(`${API}/knowledge-base`, { method: 'POST', headers: h(), body: JSON.stringify(dto) }).then(r => r.json());
 export const updateArticle = (id: string, dto: any) => fetch(`${API}/knowledge-base/${id}`, { method: 'PATCH', headers: h(), body: JSON.stringify(dto) }).then(r => r.json());
+export const deleteArticle = (id: string) => fetch(`${API}/knowledge-base/${id}`, { method: 'DELETE', headers: h() }).then(r => r.json());

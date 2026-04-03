@@ -156,6 +156,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                         <SectionLabel label="System" />
                         {systemNav
                           .filter(item => {
+                            // Admin Panel only for ADMIN role
+                            if (item.href === '/dashboard/admin') {
+                              return userRole === 'ADMIN';
+                            }
                             // Employee Management only for managers/admins
                             if (item.href === '/dashboard/employee-management') {
                               return ['MANAGER', 'ADMIN'].includes(userRole);

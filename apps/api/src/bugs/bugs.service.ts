@@ -96,4 +96,14 @@ export class BugsService {
       include: { user: { select: { id: true, name: true, avatar_url: true } } },
     });
   }
+
+  async deleteBug(id: string, userId: string) {
+    const roles = await this.assertNotStudent(userId);
+    const isPrivileged = roles.some(r => ['MANAGER', 'ADMIN'].includes(r));
+    const bug = await this.prisma.bug.findUnique({ where: { id } });
+    if (!bug) throw new NotFoundException('Bug not found');
+    if (!isPrivileged && bug.reported_by !== userId) throw new ForbiddenException('Access denied');
+    await this.prisma.bug.delete({ where: { id } });
+    return { message: 'Bug deleted' };
+  }
 }

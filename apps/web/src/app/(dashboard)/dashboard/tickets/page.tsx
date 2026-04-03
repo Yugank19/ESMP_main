@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Ticket, AlertCircle, Clock, CheckCircle, X, Filter } from 'lucide-react';
-import { getTickets, getTicketStats, createTicket, updateTicket, addTicketComment } from '@/lib/tickets-api';
+import { Plus, Ticket, AlertCircle, Clock, CheckCircle, X, Filter, Trash2, ArrowLeft } from 'lucide-react';
+import { getTickets, getTicketStats, createTicket, updateTicket, addTicketComment, deleteTicket } from '@/lib/tickets-api';
 
 const CATEGORIES = ['IT', 'HR', 'BUG', 'SUPPORT', 'ACCESS', 'EQUIPMENT', 'LEAVE', 'GENERAL'];
 const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
@@ -65,6 +65,11 @@ export default function TicketsPage() {
     } catch (err: any) { alert(err.message); }
   }
 
+  async function handleDelete(id: string) {
+    if (!confirm('Delete this ticket? This cannot be undone.')) return;
+    try { await deleteTicket(id); setSelected(null); load(); } catch { alert('Failed to delete ticket'); }
+  }
+
   async function handleStatusChange(id: string, status: string) {
     await updateTicket(id, { status });
     load();
@@ -89,9 +94,18 @@ export default function TicketsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Service Requests</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Raise and track IT, HR, and support tickets</p>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ color: 'var(--text-secondary)', background: 'var(--bg-surface-2)' }}
+            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}>
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Service Requests</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Raise and track IT, HR, and support tickets</p>
+          </div>
         </div>
         <button onClick={() => setShowCreate(true)}
           className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold text-white transition-colors"
@@ -238,7 +252,15 @@ export default function TicketsPage() {
                 <p className="font-mono text-xs font-semibold" style={{ color: 'var(--jira-blue)' }}>{selected.ticket_no}</p>
                 <h2 className="text-base font-bold mt-1" style={{ color: 'var(--text-primary)' }}>{selected.title}</h2>
               </div>
-              <button onClick={() => setSelected(null)}><X className="h-5 w-5" style={{ color: 'var(--text-muted)' }} /></button>
+              <div className="flex items-center gap-2">
+                {(user?.roles?.[0]?.toUpperCase() === 'ADMIN' || user?.roles?.[0]?.toUpperCase() === 'MANAGER' || selected.created_by === user?.id) && (
+                  <button onClick={() => handleDelete(selected.id)} title="Delete ticket"
+                    className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+                <button onClick={() => setSelected(null)}><X className="h-5 w-5" style={{ color: 'var(--text-muted)' }} /></button>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2">
               <span className={`lozenge ${STATUS_COLORS[selected.status] || 'lozenge-default'}`}>{selected.status}</span>
