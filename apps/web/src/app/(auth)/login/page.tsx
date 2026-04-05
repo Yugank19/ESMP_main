@@ -39,40 +39,42 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="w-full space-y-10">
+        <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Heading */}
-            <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 bg-[#EFF6FF] text-[#1D4ED8] text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#1D4ED8]" />
-                    Secure Sign In
+            <div className="space-y-3">
+                <div className="inline-flex items-center gap-2.5 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-2 border border-blue-100/50 shadow-sm">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                    Secure Enterprise Access
                 </div>
-                <h1 className="text-3xl font-bold text-[#0F172A] tracking-tight leading-tight">
-                    Welcome back
-                </h1>
-                <p className="text-[#64748B] text-base">
-                    Sign in to your ESMP account to continue.
-                </p>
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                        Welcome back
+                    </h1>
+                    <p className="text-slate-500 text-sm mt-1 font-medium">
+                        Enter your credentials to access your workplace.
+                    </p>
+                </div>
             </div>
 
             {/* Form */}
             <form onSubmit={handleLogin} className="space-y-5">
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                    <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-xs font-semibold animate-in shake duration-500">
                         {error}
                     </div>
                 )}
 
                 <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-semibold text-[#0F172A]">
-                        Email address
+                    <label htmlFor="email" className="text-[11px] font-bold uppercase tracking-widest text-slate-500 ml-1">
+                        Professional Email
                     </label>
-                    <div className="relative">
-                        <Mail className="absolute left-3.5 top-3 h-4 w-4 text-[#94A3B8]" />
+                    <div className="relative group">
+                        <Mail className="absolute left-4 top-3.5 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <input
                             id="email"
                             type="email"
-                            placeholder="you@gmail.com"
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-white text-sm text-[#0F172A] placeholder:text-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] focus:border-transparent transition shadow-sm"
+                            placeholder="name@company.com"
+                            className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-white/50 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             required
@@ -81,21 +83,21 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                        <label htmlFor="password" className="text-sm font-semibold text-[#0F172A]">
+                    <div className="flex items-center justify-between ml-1">
+                        <label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
                             Password
                         </label>
-                        <button type="button" className="text-xs text-[#1D4ED8] hover:underline font-medium">
-                            Forgot password?
+                        <button type="button" className="text-[10px] text-blue-600 hover:text-blue-700 font-bold uppercase tracking-wider transition">
+                            Forgot Access?
                         </button>
                     </div>
-                    <div className="relative">
-                        <Lock className="absolute left-3.5 top-3 h-4 w-4 text-[#94A3B8]" />
+                    <div className="relative group">
+                        <Lock className="absolute left-4 top-3.5 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <input
                             id="password"
                             type="password"
-                            placeholder="Enter your password"
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-white text-sm text-[#0F172A] placeholder:text-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] focus:border-transparent transition shadow-sm"
+                            placeholder="••••••••"
+                            className="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-white/50 text-sm text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             required
@@ -106,23 +108,23 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 px-4 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-sm font-semibold rounded-xl transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md shadow-blue-200 mt-2"
+                    className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold uppercase tracking-widest rounded-2xl transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 mt-4 active:scale-[0.98]"
                 >
                     {loading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                        <>Sign in <ArrowRight className="h-4 w-4" /></>
+                        <>Log In <ArrowRight className="h-4 w-4" /></>
                     )}
                 </button>
             </form>
 
             {/* Divider */}
-            <div className="relative">
+            <div className="relative py-2">
                 <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-[#E2E8F0]" />
+                    <div className="w-full border-t border-slate-100" />
                 </div>
                 <div className="relative flex justify-center">
-                    <span className="bg-[#F8FAFC] px-4 text-xs text-[#94A3B8] font-medium">
+                    <span className="bg-[#F8FAFC]/50 backdrop-blur-sm px-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                         New to ESMP?
                     </span>
                 </div>
@@ -130,21 +132,21 @@ export default function LoginPage() {
 
             <Link
                 href="/register"
-                className="w-full py-3 px-4 border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[#0F172A] text-sm font-semibold rounded-xl transition flex items-center justify-center gap-2 shadow-sm"
+                className="w-full py-3.5 px-4 border border-slate-200 bg-white/50 hover:bg-white text-slate-900 text-xs font-bold uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
             >
                 Create an account
             </Link>
 
-            {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-3 pt-2">
+            {/* Trust badges - Modern Grid */}
+            <div className="grid grid-cols-3 gap-3 pt-4">
                 {[
-                    { label: 'Secure', sub: 'SSL encrypted' },
-                    { label: 'Private', sub: 'Data protected' },
-                    { label: 'Reliable', sub: '99.9% uptime' },
+                    { label: 'Security', sub: 'TLS 1.3' },
+                    { label: 'Privacy', sub: 'GDPR/ISO' },
+                    { label: 'Uptime', sub: '99.99%' },
                 ].map(b => (
-                    <div key={b.label} className="text-center p-3 rounded-xl bg-white border border-[#E2E8F0]">
-                        <p className="text-xs font-bold text-[#0F172A]">{b.label}</p>
-                        <p className="text-[10px] text-[#94A3B8] mt-0.5">{b.sub}</p>
+                    <div key={b.label} className="text-center py-2 px-1 rounded-xl bg-slate-50/50 border border-slate-100 flex flex-col items-center justify-center">
+                        <p className="text-[9px] font-black text-slate-800 uppercase tracking-tighter">{b.label}</p>
+                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-[0.1em]">{b.sub}</p>
                     </div>
                 ))}
             </div>
