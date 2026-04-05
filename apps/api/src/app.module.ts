@@ -32,6 +32,7 @@ import { KbModule } from './knowledge-base/kb.module';
 import { CompanyAnnouncementsModule } from './company-announcements/announcements.module';
 import { WorkloadModule } from './workload/workload.module';
 import { EmployeesModule } from './employees/employees.module';
+import { ClientPortalModule } from './client-portal/client-portal.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { EmployeesModule } from './employees/employees.module';
     CompanyAnnouncementsModule,
     WorkloadModule,
     EmployeesModule,
+    ClientPortalModule,
   ],
   controllers: [],
   providers: [],

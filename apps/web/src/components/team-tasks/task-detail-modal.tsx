@@ -3,11 +3,17 @@
 import { useState } from 'react';
 import { X, Clock, User, Flag, Calendar, MessageSquare, Trash2, Send, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { teamTasksApi } from '@/lib/team-tasks-api';
+import TaskWorkflowPanel from './task-workflow-panel';
 
-const STATUS_OPTIONS = ['TODO', 'IN_PROGRESS', 'REVIEW', 'COMPLETED'];
+const STATUS_OPTIONS = ['TODO', 'IN_PROGRESS', 'READY_FOR_REVIEW', 'READY_FOR_TESTING', 'APPROVED', 'DONE', 'REWORK_REQUIRED'];
 const STATUS_COLORS: Record<string, string> = {
     TODO: 'bg-slate-100 text-slate-600',
     IN_PROGRESS: 'bg-blue-100 text-blue-700',
+    READY_FOR_REVIEW: 'bg-amber-100 text-amber-700',
+    READY_FOR_TESTING: 'bg-purple-100 text-purple-700',
+    APPROVED: 'bg-green-100 text-green-700',
+    DONE: 'bg-green-100 text-green-700',
+    REWORK_REQUIRED: 'bg-red-100 text-red-700',
     REVIEW: 'bg-purple-100 text-purple-700',
     COMPLETED: 'bg-green-100 text-green-700',
 };
@@ -152,6 +158,23 @@ export default function TaskDetailModal({ task, teamId, currentUser, isLeader, m
                                 </p>
                             </div>
                         )}
+
+                        {/* ── Enterprise Workflow Panel ── */}
+                        <div>
+                            <p className="text-xs font-semibold text-[#64748B] mb-2">Task Workflow</p>
+                            <TaskWorkflowPanel
+                                task={t}
+                                currentUser={currentUser}
+                                memberRole={isLeader ? 'LEADER' : 'MEMBER'}
+                                onStatusChange={async () => {
+                                    try {
+                                        const res = await teamTasksApi.getTask(t.id);
+                                        setT(res.data);
+                                        onUpdated(res.data);
+                                    } catch {}
+                                }}
+                            />
+                        </div>
 
                         {/* History */}
                         {t.history?.length > 0 && (

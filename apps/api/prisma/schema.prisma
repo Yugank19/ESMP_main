@@ -80,6 +80,12 @@ model User {
   kb_articles        KbArticle[]
   company_announcements CompanyAnnouncement[]
   workload_entries   WorkloadEntry[]
+  task_submissions   TaskSubmission[]
+  task_reviews       TaskReview[]
+  client_projects    ClientProject[]    @relation("ClientProjects")
+  managed_client_projects ClientProject[] @relation("ManagedClientProjects")
+  client_deliverables ClientDeliverable[]
+  client_feedback    ClientFeedback[]
 
   // Role details
   student_detail  StudentDetail?
@@ -494,6 +500,8 @@ model TeamTask {
   comments    TeamTaskComment[]
   history     TeamTaskHistory[]
   milestone_tasks MilestoneTask[]
+  submissions     TaskSubmission[]
+  reviews         TaskReview[]
 
   @@index([team_id])
   @@index([status])
@@ -1058,4 +1066,117 @@ model WorkloadEntry {
   @@unique([user_id, date])
   @@index([user_id])
   @@map("workload_entries")
+}
+
+// ─── Phase 6: Enterprise Task Workflow ───────────────────────────────────────
+
+model TaskSubmission {
+  id           String   @id @default(uuid())
+  task_id      String
+  submitted_by String
+  description  String   @db.Text
+  files        Json?    // array of { name, url, size }
+  version      Int      @default(1)
+  created_at   DateTime @default(now())
+
+  task         TeamTask @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  submitter    User     @relation(fields: [submitted_by], references: [id])
+
+  @@index([task_id])
+  @@map("task_submissions")
+}
+
+model TaskReview {
+  id          String   @id @default(uuid())
+  task_id     String
+  reviewer_id String
+  action      String   // APPROVED, REJECTED, SENT_FOR_TESTING, REWORK_REQUIRED
+  feedback    String?  @db.Text
+  created_at  DateTime @default(now())
+
+  task        TeamTask @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  reviewer    User     @relation(fields: [reviewer_id], references: [id])
+
+  @@index([task_id])
+  @@map("task_reviews")
+}
+
+// ─── Client Portal ────────────────────────────────────────────────────────────
+
+model ClientProject {
+  id           String   @id @default(uuid())
+  client_id    String
+  manager_id   String
+  team_id      String?  // linked to a team workspace
+  project_name String
+  company_name String
+  description  String?  @db.Text
+  status       String   @default("ACTIVE") // ACTIVE, COMPLETED, ON_HOLD
+  access_type  String   @default("VIEW")   // VIEW, COMMENT, APPROVE
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  client       User     @relation("ClientProjects",  fields: [client_id],  references: [id])
+  manager      User     @relation("ManagedClientProjects", fields: [manager_id], references: [id])
+
+  deliverables ClientDeliverable[]
+  feedback     ClientFeedback[]
+  milestones   ClientMilestone[]
+
+  @@index([client_id])
+  @@index([manager_id])
+  @@map("client_projects")
+}
+
+model ClientDeliverable {
+  id          String   @id @default(uuid())
+  project_id  String
+  title       String
+  description String?  @db.Text
+  file_url    String?
+  file_name   String?
+  file_size   Int?
+  status      String   @default("PENDING_REVIEW") // PENDING_REVIEW, APPROVED, REJECTED, REVISION_REQUESTED
+  version     String   @default("1.0")
+  uploaded_by String
+  feedback    String?  @db.Text
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  project     ClientProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  uploader    User          @relation(fields: [uploaded_by], references: [id])
+
+  @@index([project_id])
+  @@map("client_deliverables")
+}
+
+model ClientFeedback {
+  id         String   @id @default(uuid())
+  project_id String
+  author_id  String
+  body       String   @db.Text
+  type       String   @default("COMMENT") // COMMENT, CHANGE_REQUEST, APPROVAL, REJECTION
+  created_at DateTime @default(now())
+
+  project    ClientProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  author     User          @relation(fields: [author_id], references: [id])
+
+  @@index([project_id])
+  @@map("client_feedback")
+}
+
+model ClientMilestone {
+  id          String   @id @default(uuid())
+  project_id  String
+  title       String
+  description String?  @db.Text
+  status      String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  due_date    DateTime?
+  created_at  DateTime @default(now())
+
+  project     ClientProject @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@index([project_id])
+  @@map("client_milestones")
 }

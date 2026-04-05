@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import NotificationsBell from "@/components/notifications-bell";
+import ProfileMenu from "@/components/profile-menu";
 import { Search, Menu } from "lucide-react";
 import { globalSearch } from "@/lib/search-api";
 import Link from "next/link";
@@ -30,7 +31,9 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/workload": "Resource Management",
   "/dashboard/my-workspace": "My Workspace",
   "/dashboard/employee-management": "Employee Management",
+  "/dashboard/client-management": "Client Management",
 };
+
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -197,19 +200,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Right side */}
           <div className="flex items-center gap-2 shrink-0">
             <NotificationsBell />
-            {user && (
-              <div className="flex items-center gap-2.5 pl-1">
-                <div className="w-8 h-8 rounded-full bg-[#1D4ED8] flex items-center justify-center shrink-0 ring-2 ring-[#1D4ED8]/20">
-                  <span className="text-white text-xs font-bold">
-                    {user.name?.charAt(0)?.toUpperCase() || "U"}
-                  </span>
-                </div>
-                <div className="hidden lg:block">
-                  <p className="text-sm font-semibold leading-none" style={{ color: "var(--text-primary)" }}>{user.name}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{user.roles?.[0] || "User"}</p>
-                </div>
-              </div>
-            )}
+            {user && <ProfileMenu user={user} onAvatarUpdate={(url: string) => setUser((u: any) => ({ ...u, avatar_url: url }))} />}
           </div>
         </header>
 

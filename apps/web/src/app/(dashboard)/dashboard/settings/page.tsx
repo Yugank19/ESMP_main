@@ -30,6 +30,46 @@ export default function SettingsPage() {
   const [passwordForm, setPasswordForm] = useState({ current: '', newPass: '', confirm: '' });
   const [pwError, setPwError] = useState('');
   const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [viewPhoto, setViewPhoto] = useState(false);
+
+  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('File too large. Max 5MB.'); return; }
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${API}/profile/avatar`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: formData,
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const url = data.avatar_url.startsWith('/uploads/') ? `${API}${data.avatar_url}` : data.avatar_url;
+        setUser((u: any) => ({ ...u, avatar_url: url }));
+        const stored = JSON.parse(localStorage.getItem('user') || '{}');
+        localStorage.setItem('user', JSON.stringify({ ...stored, avatar_url: url }));
+        showSaved();
+        return;
+      }
+    } catch {}
+    // Fallback: base64
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const url = ev.target?.result as string;
+      setUser((u: any) => ({ ...u, avatar_url: url }));
+      const stored = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem('user', JSON.stringify({ ...stored, avatar_url: url }));
+      showSaved();
+    };
+    reader.readAsDataURL(file);
+    setAvatarUploading(false);
+  }
 
   useEffect(() => {
     const stored = localStorage.getItem('user');
@@ -179,16 +219,60 @@ export default function SettingsPage() {
           {activeTab === 'profile' && (
             <div className="space-y-4">
               <h2 className="text-[15px] font-semibold text-[#0F172A]">Profile Information</h2>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-full bg-[#1D4ED8] flex items-center justify-center text-white text-2xl font-bold">
-                  {user.name?.[0]?.toUpperCase() || 'U'}
+
+              {/* Avatar section */}
+              <div className="flex items-center gap-5 mb-2">
+                <div className="relative group/avatar">
+                  {/* Photo viewer */}
+                  {user.avatar_url && (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.name}
+                      className="w-20 h-20 rounded-full object-cover cursor-pointer ring-4 ring-[#1D4ED8]/20 hover:ring-[#1D4ED8]/50 transition-all"
+                      onClick={() => setViewPhoto(true)}
+                      title="Click to view"
+                    />
+                  )}
+                  {!user.avatar_url && (
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#2563eb] to-[#7c3aed] flex items-center justify-center text-white text-2xl font-bold ring-4 ring-[#1D4ED8]/20">
+                      {user.name?.[0]?.toUpperCase() || 'U'}
+                    </div>
+                  )}
+                  {/* Upload overlay */}
+                  <label className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover/avatar:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                    <span className="text-white text-xs font-semibold text-center leading-tight">
+                      {avatarUploading ? '...' : '📷 Change'}
+                    </span>
+                  </label>
                 </div>
                 <div>
                   <p className="text-[15px] font-semibold text-[#0F172A]">{user.name}</p>
                   <p className="text-sm text-[#64748B]">{user.email}</p>
-                  <p className="text-xs text-[#94A3B8] mt-0.5">{user.roles?.[0] || 'User'}</p>
+                  <p className="text-xs text-[#94A3B8] mt-0.5 capitalize">{user.roles?.[0] || 'User'}</p>
+                  <label className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+                    style={{ background: 'var(--bg-surface-2)', color: 'var(--text-secondary)' }}>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+                    {avatarUploading ? 'Uploading...' : '📷 Change Photo'}
+                  </label>
                 </div>
               </div>
+
+              {/* Photo lightbox */}
+              {viewPhoto && user.avatar_url && (
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4"
+                  onClick={() => setViewPhoto(false)}>
+                  <div className="relative" onClick={e => e.stopPropagation()}>
+                    <img src={user.avatar_url} alt={user.name}
+                      className="max-w-sm max-h-[80vh] rounded-2xl object-cover shadow-2xl" />
+                    <button onClick={() => setViewPhoto(false)}
+                      className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg text-gray-700 hover:bg-gray-100">
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Full Name" value={profileForm.name} onChange={(v: string) => setProfileForm(f => ({ ...f, name: v }))} />
                 <Field label="Email" value={profileForm.email} disabled />

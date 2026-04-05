@@ -155,6 +155,38 @@ export class MailService {
     });
   }
 
+  async sendClientCredentials(email: string, name: string, tempPassword: string, projectName: string) {
+    await this.mailerService.sendMail({
+      to: email,
+      subject: `Welcome to ESMP Client Portal — Your project "${projectName}" is ready`,
+      html: `
+        <div style="font-family:-apple-system,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+          <div style="background:linear-gradient(135deg,#2563eb,#7c3aed);padding:32px 40px;text-align:center;">
+            <div style="display:inline-block;background:rgba(255,255,255,0.2);border-radius:12px;padding:8px 20px;margin-bottom:16px;">
+              <span style="color:#fff;font-weight:900;font-size:18px;">ESMP</span>
+            </div>
+            <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">Welcome to Your Client Portal</h1>
+            <p style="color:rgba(255,255,255,0.8);margin:8px 0 0;font-size:14px;">${projectName}</p>
+          </div>
+          <div style="padding:32px 40px;">
+            <p style="color:#374151;font-size:16px;margin:0 0 8px;">Hi <strong>${name}</strong>,</p>
+            <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 24px;">Your client portal account has been created. You can now track project progress, review deliverables, and provide feedback.</p>
+            <div style="background:#f8fafc;border-radius:10px;padding:20px;margin:24px 0;border:1px solid #e2e8f0;">
+              <p style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px;">Login Credentials</p>
+              <p style="margin:0 0 8px;color:#374151;font-size:14px;"><strong>Portal URL:</strong> <a href="http://localhost:3000/login" style="color:#2563eb;">http://localhost:3000/login</a></p>
+              <p style="margin:0 0 8px;color:#374151;font-size:14px;"><strong>Email:</strong> ${email}</p>
+              <p style="margin:0;color:#374151;font-size:14px;"><strong>Temporary Password:</strong> <span style="font-family:monospace;font-size:18px;font-weight:900;color:#2563eb;letter-spacing:3px;">${tempPassword}</span></p>
+            </div>
+            <p style="color:#dc2626;font-size:13px;font-weight:600;">⚠ Please change your password after first login.</p>
+          </div>
+          <div style="background:#f8fafc;padding:16px 40px;border-top:1px solid #e2e8f0;text-align:center;">
+            <p style="color:#9ca3af;font-size:12px;margin:0;">ESMP Client Portal · Secure &amp; Encrypted</p>
+          </div>
+        </div>
+      `,
+    });
+  }
+
   async sendVerificationEmail(email: string, url: string) {
     await this.mailerService.sendMail({
       to: email,

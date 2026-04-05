@@ -43,6 +43,7 @@ const systemNav = [
     { href: '/dashboard/settings',           label: 'Settings',           icon: Settings },
     { href: '/dashboard/admin',              label: 'Admin Panel',         icon: Shield },
     { href: '/dashboard/employee-management',label: 'Employee Management', icon: UserCog },
+    { href: '/dashboard/client-management',  label: 'Client Management',   icon: Users },
 ];
 
 interface SidebarProps {
@@ -162,6 +163,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                             }
                             // Employee Management only for managers/admins
                             if (item.href === '/dashboard/employee-management') {
+                              return ['MANAGER', 'ADMIN'].includes(userRole);
+                            }
+                            // Client Management only for managers/admins
+                            if (item.href === '/dashboard/client-management') {
                               return ['MANAGER', 'ADMIN'].includes(userRole);
                             }
                             return true;

@@ -19,6 +19,8 @@ declare global {
     }
 }
 
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 export default function VideoConference({ teamId, teamName, currentUser, members }: Props) {
     const jitsiRef = useRef<HTMLDivElement>(null);
     const apiRef = useRef<any>(null);
@@ -29,6 +31,7 @@ export default function VideoConference({ teamId, teamName, currentUser, members
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
     const [scriptLoaded, setScriptLoaded] = useState(false);
+    const [notifyStatus, setNotifyStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
     // Stable room name based on teamId
     const roomName = `esmp-team-${teamId.replace(/-/g, '').slice(0, 16)}`;
@@ -48,9 +51,34 @@ export default function VideoConference({ teamId, teamName, currentUser, members
         };
     }, []);
 
+    async function notifyMembers() {
+        setNotifyStatus('sending');
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API}/teams/${teamId}/video-call/start`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (res.ok) {
+                setNotifyStatus('sent');
+                setTimeout(() => setNotifyStatus('idle'), 4000);
+            } else {
+                setNotifyStatus('error');
+            }
+        } catch {
+            setNotifyStatus('error');
+        }
+    }
+
     function startCall() {
         if (!scriptLoaded || !jitsiRef.current) return;
         setLoading(true);
+
+        // Notify all team members via API (notifications + emails)
+        notifyMembers();
 
         try {
             apiRef.current = new window.JitsiMeetExternalAPI('meet.jit.si', {
@@ -68,21 +96,23 @@ export default function VideoConference({ teamId, teamName, currentUser, members
                     disableDeepLinking: true,
                     prejoinPageEnabled: false,
                     enableWelcomePage: false,
+                    // Only use toolbar buttons that are universally supported
                     toolbarButtons: [
                         'microphone', 'camera', 'desktop', 'fullscreen',
-                        'fodeviceselection', 'hangup', 'chat', 'recording',
-                        'livestreaming', 'etherpad', 'sharedvideo', 'settings',
-                        'raisehand', 'videoquality', 'filmstrip', 'participants-pane',
-                        'feedback', 'stats', 'shortcuts', 'tileview', 'select-background',
-                        'download', 'help', 'mute-everyone', 'security',
+                        'fodeviceselection', 'hangup', 'chat',
+                        'raisehand', 'videoquality', 'filmstrip',
+                        'participants-pane', 'tileview', 'select-background',
+                        'help', 'mute-everyone',
                     ],
                     subject: `${teamName} — Team Meeting`,
+                    // Allow camera/mic in iframe
+                    disableAudioLevels: false,
+                    enableLayerSuspension: true,
                 },
                 interfaceConfigOverwrite: {
                     SHOW_JITSI_WATERMARK: false,
                     SHOW_WATERMARK_FOR_GUESTS: false,
                     SHOW_BRAND_WATERMARK: false,
-                    BRAND_WATERMARK_LINK: '',
                     SHOW_POWERED_BY: false,
                     DISPLAY_WELCOME_FOOTER: false,
                     MOBILE_APP_PROMO: false,
@@ -93,9 +123,22 @@ export default function VideoConference({ teamId, teamName, currentUser, members
                 },
             });
 
+            // Patch iframe allow attribute immediately so browser grants permissions
+            setTimeout(() => {
+                const iframe = jitsiRef.current?.querySelector('iframe');
+                if (iframe) {
+                    iframe.setAttribute('allow', 'camera; microphone; fullscreen; display-capture; autoplay; clipboard-write');
+                }
+            }, 500);
+
             apiRef.current.addEventListener('videoConferenceJoined', () => {
                 setInCall(true);
                 setLoading(false);
+                // Patch iframe permissions after it's created
+                const iframe = jitsiRef.current?.querySelector('iframe');
+                if (iframe) {
+                    iframe.setAttribute('allow', 'camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; speaker-selection');
+                }
             });
 
             apiRef.current.addEventListener('videoConferenceLeft', () => {
@@ -218,6 +261,23 @@ export default function VideoConference({ teamId, teamName, currentUser, members
                 )}
             </div>
 
+            {/* Notification status banner */}
+            {notifyStatus !== 'idle' && (
+                <div className="mx-5 mt-3 px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2"
+                    style={{
+                        background: notifyStatus === 'sent' ? '#ecfdf5' : notifyStatus === 'error' ? '#fef2f2' : '#eff6ff',
+                        color: notifyStatus === 'sent' ? '#059669' : notifyStatus === 'error' ? '#dc2626' : '#2563eb',
+                        border: `1px solid ${notifyStatus === 'sent' ? '#a7f3d0' : notifyStatus === 'error' ? '#fecaca' : '#bfdbfe'}`,
+                    }}>
+                    {notifyStatus === 'sending' && (
+                        <><div className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: '#2563eb', borderTopColor: 'transparent' }} />
+                        Notifying team members...</>
+                    )}
+                    {notifyStatus === 'sent' && <>✅ All members notified via app &amp; email</>}
+                    {notifyStatus === 'error' && <>⚠️ Could not send notifications — call still works</>}
+                </div>
+            )}
+
             {/* Pre-call screen */}
             {!inCall && !loading && (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 gap-6">
@@ -270,20 +330,26 @@ export default function VideoConference({ teamId, teamName, currentUser, members
                     </div>
 
                     {/* Action buttons */}
-                    <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm">
+                    <div className="flex flex-col gap-3 w-full max-w-sm">
+                        {/* Primary: Open in browser (most reliable) */}
+                        <a href={meetingLink} target="_blank" rel="noopener noreferrer"
+                            onClick={notifyMembers}
+                            className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
+                            style={{ background: 'linear-gradient(135deg,#2563eb,#7c3aed)', boxShadow: '0 4px 16px rgba(37,99,235,0.3)' }}>
+                            <Video className="h-4 w-4" /> Start Video Call (Opens in new tab)
+                        </a>
+                        {/* Secondary: Try embedded */}
                         <button
                             onClick={startCall}
                             disabled={!scriptLoaded}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{ background: 'linear-gradient(135deg,#2563eb,#7c3aed)', boxShadow: '0 4px 16px rgba(37,99,235,0.3)' }}>
-                            <Video className="h-4 w-4" />
-                            {scriptLoaded ? 'Start Video Call' : 'Loading...'}
+                            className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all hover:-translate-y-0.5 disabled:opacity-50 border"
+                            style={{ color: 'var(--text-secondary)', borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
+                            <ExternalLink className="h-4 w-4" />
+                            {scriptLoaded ? 'Try embedded call (experimental)' : 'Loading Jitsi...'}
                         </button>
-                        <a href={meetingLink} target="_blank" rel="noopener noreferrer"
-                            className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:-translate-y-0.5 border"
-                            style={{ color: 'var(--text-primary)', borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
-                            <ExternalLink className="h-4 w-4" /> Open in Browser
-                        </a>
+                        <p className="text-[10px] text-center" style={{ color: 'var(--text-muted)' }}>
+                            Recommended: use "Start Video Call" which opens in a new tab for best camera/mic support
+                        </p>
                     </div>
 
                     {/* Invite link */}

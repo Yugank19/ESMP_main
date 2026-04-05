@@ -1,6 +1,8 @@
 import {
   Controller, Post, Patch, Body, UseGuards, Request, Get, Put, BadRequestException,
+  UploadedFile, UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
 import { ProfileService } from './profile.service';
 import { AuditService } from '../audit/audit.service';
@@ -9,6 +11,8 @@ import {
   CompleteProfileDto, StudentDetailDto, EmployeeDetailDto, ManagerDetailDto, ClientDetailDto,
 } from '@esmp/shared';
 import * as bcrypt from 'bcryptjs';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('profile')
@@ -72,5 +76,34 @@ export class ProfileController {
   @Post('client')
   async updateClient(@Request() req: any, @Body() dto: ClientDetailDto) {
     return this.profileService.updateClientDetails(req.user.id, dto);
+  }
+
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: require('multer').memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req: any, file: any, cb: any) => {
+      if (!file.mimetype.startsWith('image/')) {
+        return cb(new BadRequestException('Only image files allowed'), false);
+      }
+      cb(null, true);
+    },
+  }))
+  async uploadAvatar(@Request() req: any, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file uploaded');
+
+    const uploadsDir = path.join(process.cwd(), 'uploads', 'avatars');
+    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+    const ext = path.extname(file.originalname) || '.jpg';
+    const filename = `avatar-${req.user.id}-${Date.now()}${ext}`;
+    const filepath = path.join(uploadsDir, filename);
+    fs.writeFileSync(filepath, file.buffer);
+
+    // URL accessible via ServeStatic: /uploads/avatars/filename
+    const avatar_url = `/uploads/avatars/${filename}`;
+    await this.prisma.user.update({ where: { id: req.user.id }, data: { avatar_url } });
+
+    return { avatar_url };
   }
 }

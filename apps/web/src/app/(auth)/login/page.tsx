@@ -24,7 +24,13 @@ export default function LoginPage() {
             const res = await api.post('/auth/login', formData);
             localStorage.setItem('token', res.data.access_token);
             localStorage.setItem('user', JSON.stringify(res.data.user));
-            router.push('/dashboard');
+            // Route based on role
+            const role = (res.data.user.roles?.[0] || '').toUpperCase();
+            if (role === 'CLIENT') {
+                router.push('/client-dashboard');
+            } else {
+                router.push('/dashboard');
+            }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Invalid email or password.');
         } finally {
