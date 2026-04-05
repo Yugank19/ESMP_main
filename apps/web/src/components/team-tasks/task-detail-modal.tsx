@@ -168,7 +168,7 @@ export default function TaskDetailModal({ task, teamId, currentUser, isLeader, m
                                 memberRole={isLeader ? 'LEADER' : 'MEMBER'}
                                 onStatusChange={async () => {
                                     try {
-                                        const res = await teamTasksApi.getTask(t.id);
+                                        const res = await teamTasksApi.getTask(teamId, t.id);
                                         setT(res.data);
                                         onUpdated(res.data);
                                     } catch {}
