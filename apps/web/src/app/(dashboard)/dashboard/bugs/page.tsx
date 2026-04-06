@@ -295,7 +295,7 @@ export default function BugsPage() {
                            ].map(({ field, label, placeholder }) => (
                              <div key={field} className={cn("space-y-1.5", field === 'actual_behavior' && "md:col-span-2")}>
                                 <label className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest pl-1">{label}</label>
-                                <textarea rows={b === 'actual_behavior' ? 4 : 3} value={(form as any)[field]} placeholder={placeholder} onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
+                                <textarea rows={field === 'actual_behavior' ? 4 : 3} value={(form as any)[field]} placeholder={placeholder} onChange={e => setForm(f => ({ ...f, [field]: e.target.value }))}
                                   className={cn(inputClass, "resize-none font-medium bg-slate-50 border-dashed border-2")} />
                              </div>
                            ))}
