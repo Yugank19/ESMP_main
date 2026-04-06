@@ -6,7 +6,8 @@ import {
     Users, Crown, Settings, Copy, Check, ArrowLeft,
     UserPlus, Trash2, Lock, Globe, RefreshCw, UserMinus,
     CheckSquare, Target, TrendingUp, LayoutDashboard, Plus,
-    Search, Clock, MessageSquare, FolderOpen, Megaphone, BookOpen, Activity, Video
+    Search, Clock, MessageSquare, FolderOpen, Megaphone, BookOpen, Activity, Video,
+    ExternalLink, MoreHorizontal, ChevronDown, Filter, Share2, Star
 } from 'lucide-react';
 import { teamsApi } from '@/lib/teams-api';
 import { teamTasksApi } from '@/lib/team-tasks-api';
@@ -24,12 +25,13 @@ import Announcements from '@/components/team-collab/announcements';
 import MeetingNotes from '@/components/team-collab/meeting-notes';
 import ActivityFeed from '@/components/team-collab/activity-feed';
 import VideoConference from '@/components/team-collab/video-conference';
+import { cn } from '@/lib/utils';
 
 const ROLE_COLORS: Record<string, string> = {
-    LEADER: 'bg-amber-100 text-amber-700',
-    MEMBER: 'bg-blue-100 text-blue-700',
-    REVIEWER: 'bg-purple-100 text-purple-700',
-    VIEWER: 'bg-slate-100 text-slate-600',
+    LEADER: 'bg-amber-50 text-amber-700 border-amber-100',
+    MEMBER: 'bg-blue-50 text-blue-700 border-blue-100',
+    REVIEWER: 'bg-purple-50 text-purple-700 border-purple-100',
+    VIEWER: 'bg-slate-50 text-slate-600 border-slate-200',
 };
 
 type Tab = 'dashboard' | 'tasks' | 'milestones' | 'progress' | 'chat' | 'files' | 'announcements' | 'meetings' | 'video' | 'members' | 'activity' | 'settings';
@@ -44,7 +46,7 @@ export default function TeamWorkspacePage() {
     const [copied, setCopied] = useState(false);
     const [activeTab, setActiveTab] = useState<Tab>('dashboard');
 
-    // Phase 3 state
+    // Task & Project data
     const [tasks, setTasks] = useState<any[]>([]);
     const [milestones, setMilestones] = useState<any[]>([]);
     const [progressUpdates, setProgressUpdates] = useState<any[]>([]);
@@ -182,330 +184,349 @@ export default function TeamWorkspacePage() {
     };
 
     if (loading) return (
-        <div className="flex items-center justify-center h-64">
-            <div className="h-8 w-8 rounded-full border-2 border-[#1D4ED8] border-t-transparent animate-spin" />
+        <div className="flex items-center justify-center py-20">
+            <div className="h-8 w-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
         </div>
     );
     if (!team) return null;
 
     const TABS: { key: Tab; label: string; icon: any }[] = [
-        { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { key: 'tasks', label: 'Tasks', icon: CheckSquare },
+        { key: 'dashboard', label: 'Summary', icon: LayoutDashboard },
+        { key: 'tasks', label: 'Board', icon: CheckSquare },
         { key: 'milestones', label: 'Roadmap', icon: Target },
-        { key: 'progress', label: 'Progress', icon: TrendingUp },
-        { key: 'chat', label: 'Chat', icon: MessageSquare },
-        { key: 'files', label: 'Files', icon: FolderOpen },
-        { key: 'announcements', label: 'Announcements', icon: Megaphone },
-        { key: 'meetings', label: 'Meetings', icon: BookOpen },
-        { key: 'video', label: 'Video Call', icon: Video },
-        { key: 'members', label: 'Members', icon: Users },
-        { key: 'activity', label: 'Activity', icon: Activity },
+        { key: 'progress', label: 'Timeline', icon: TrendingUp },
+        { key: 'chat', label: 'Discussion', icon: MessageSquare },
+        { key: 'files', label: 'Repository', icon: FolderOpen },
+        { key: 'announcements', label: 'Bulletins', icon: Megaphone },
+        { key: 'video', label: 'Huddle', icon: Video },
+        { key: 'members', label: 'Personnel', icon: Users },
+        { key: 'activity', label: 'Journal', icon: Activity },
         ...(isLeader ? [{ key: 'settings' as Tab, label: 'Settings', icon: Settings }] : []),
     ];
 
     return (
-        <div className="space-y-5 max-w-7xl">
-            {/* Back + Header */}
-            <div>
-                <button onClick={() => router.push('/dashboard/teams')}
-                    className="flex items-center gap-1.5 text-sm text-[#64748B] hover:text-[#0F172A] transition-colors mb-4">
-                    <ArrowLeft className="h-4 w-4" /> Back to Teams
-                </button>
-
-                <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-[#EFF6FF] flex items-center justify-center text-[#1D4ED8] font-bold text-lg shrink-0">
-                                {team.name.charAt(0).toUpperCase()}
+        <div className="flex flex-col h-full space-y-6">
+            {/* Project Header Area */}
+            <div className="flex flex-col gap-5">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-[3px] bg-[var(--color-primary)] flex items-center justify-center text-white font-bold text-xl shadow-sm">
+                            {team.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <nav className="flex items-center gap-2 text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                                    <span className="hover:text-[var(--text-primary)] cursor-pointer" onClick={() => router.push('/dashboard/teams')}>Projects</span>
+                                    <span className="text-[var(--border)]">/</span>
+                                    <span className="text-[var(--text-primary)]">{team.name}</span>
+                                </nav>
+                                <Star className="h-4 w-4 text-amber-400 fill-amber-400 cursor-pointer" />
                             </div>
-                            <div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <h1 className="text-lg font-bold text-[#0F172A]">{team.name}</h1>
-                                    {isLeader && (
-                                        <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                                            <Crown className="h-3 w-3" /> Leader
-                                        </span>
-                                    )}
-                                    <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${team.visibility === 'PUBLIC' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
-                                        {team.visibility === 'PUBLIC' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                                        {team.visibility}
-                                    </span>
+                            <h1 className="text-2xl font-bold text-[var(--text-primary)] mt-1 flex items-center gap-3">
+                                {team.name}
+                                <span className={cn(
+                                    "flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-[3px] uppercase tracking-tighter border",
+                                    team.visibility === 'PUBLIC' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-200'
+                                )}>
+                                    {team.visibility === 'PUBLIC' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                                    {team.visibility}
+                                </span>
+                            </h1>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="flex -space-x-2">
+                            {activeMembers.slice(0, 5).map((m: any) => (
+                                <div key={m.id} className="w-8 h-8 rounded-full border-2 border-white bg-[var(--bg-surface-3)] flex items-center justify-center text-[10px] font-bold text-[var(--text-primary)]" title={m.user?.name}>
+                                    {m.user?.name?.[0]}
                                 </div>
-                                <p className="text-sm text-[#64748B] mt-0.5">{team.description || team.purpose || 'No description.'}</p>
-                            </div>
+                            ))}
+                            {activeMembers.length > 5 && (
+                                <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                                    +{activeMembers.length - 5}
+                                </div>
+                            )}
                         </div>
-                        {isLeader && (
-                            <div className="flex gap-2 shrink-0">
-                                <button onClick={() => setShowInvite(true)}
-                                    className="flex items-center gap-1.5 px-3 py-2 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold rounded-lg transition">
-                                    <UserPlus className="h-3.5 w-3.5" /> Invite
-                                </button>
-                                <button onClick={() => setShowEdit(true)}
-                                    className="flex items-center gap-1.5 px-3 py-2 border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[#0F172A] text-xs font-semibold rounded-lg transition">
-                                    <Settings className="h-3.5 w-3.5" /> Edit
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-[#F1F5F9] flex items-center gap-3 flex-wrap">
-                        <span className="text-xs text-[#64748B] font-medium">Invite Code:</span>
-                        <code className="text-sm font-mono font-bold text-[#1D4ED8] bg-[#EFF6FF] px-3 py-1 rounded-lg tracking-widest">
-                            {team.invite_code}
-                        </code>
-                        <button onClick={copyCode} className="flex items-center gap-1.5 text-xs text-[#64748B] hover:text-[#1D4ED8] transition-colors">
-                            {copied ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
-                            {copied ? 'Copied!' : 'Copy'}
+                        <button onClick={() => setShowInvite(true)} className="jira-button border border-[var(--border)] bg-white text-[var(--text-secondary)] h-8 px-3 gap-1.5 font-bold uppercase text-[10px]">
+                            <UserPlus className="h-3.5 w-3.5" /> Invite
                         </button>
-                        {isLeader && (
-                            <button onClick={handleRegenCode} className="flex items-center gap-1.5 text-xs text-[#94A3B8] hover:text-[#64748B] transition-colors ml-auto">
-                                <RefreshCw className="h-3.5 w-3.5" /> Regenerate
-                            </button>
-                        )}
+                        <button className="jira-button border border-[var(--border)] bg-white text-[var(--text-secondary)] h-8 w-8 p-0 flex items-center justify-center">
+                            <MoreHorizontal className="h-4 w-4" />
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            {/* Tabs */}
-            <div className="flex gap-1 bg-[#F1F5F9] p-1 rounded-xl overflow-x-auto">
-                {TABS.map(tab => (
-                    <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap
-                            ${activeTab === tab.key ? 'bg-white text-[#0F172A] shadow-sm' : 'text-[#64748B] hover:text-[#0F172A]'}`}>
-                        <tab.icon className="h-3.5 w-3.5" />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-
-            {/* ── Dashboard Tab ── */}
-            {activeTab === 'dashboard' && <ProjectDashboard stats={stats} />}
-
-            {/* ── Tasks Tab ── */}
-            {activeTab === 'tasks' && (
-                <div className="space-y-4">
-                    {/* Toolbar */}
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <div className="relative flex-1 min-w-[200px] max-w-xs">
-                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#94A3B8]" />
-                            <input placeholder="Search tasks..."
-                                className="w-full pl-9 pr-4 py-2 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] focus:border-transparent transition"
-                                value={taskFilter.search}
-                                onChange={e => setTaskFilter(f => ({ ...f, search: e.target.value }))} />
+                {/* Sub-header / Invite Code Area */}
+                <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--bg-surface-2)] border border-[var(--border)] rounded-[3px]">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">Access Key</span>
+                            <code className="text-xs font-mono font-bold text-[var(--color-primary)] px-2 py-0.5 bg-blue-50 rounded tracking-widest">{team.invite_code}</code>
+                            <button onClick={copyCode} className="text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors">
+                                {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                            </button>
                         </div>
-                        <select className="px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] transition"
-                            value={taskFilter.status}
-                            onChange={e => setTaskFilter(f => ({ ...f, status: e.target.value }))}>
-                            <option value="">All Status</option>
-                            <option value="TODO">To Do</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="REVIEW">Under Review</option>
-                            <option value="COMPLETED">Completed</option>
-                        </select>
-                        <select className="px-3 py-2 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] transition"
-                            value={taskFilter.priority}
-                            onChange={e => setTaskFilter(f => ({ ...f, priority: e.target.value }))}>
-                            <option value="">All Priority</option>
-                            <option value="URGENT">Urgent</option>
-                            <option value="HIGH">High</option>
-                            <option value="MEDIUM">Medium</option>
-                            <option value="LOW">Low</option>
-                        </select>
                         {isLeader && (
-                            <button onClick={() => setShowCreateTask(true)}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-sm font-semibold rounded-lg transition ml-auto">
-                                <Plus className="h-4 w-4" /> New Task
+                            <button onClick={handleRegenCode} className="text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors flex items-center gap-1 uppercase tracking-tighter">
+                                <RefreshCw className="h-3 w-3" /> Rotate Key
                             </button>
                         )}
                     </div>
-
-                    <TaskBoard
-                        tasks={tasks}
-                        onTaskClick={setSelectedTask}
-                        isLeader={isLeader}
-                        onStatusChange={(taskId, status) => {
-                            teamTasksApi.updateTask(id, taskId, { status })
-                                .then(r => handleTaskUpdated(r.data))
-                                .catch(e => alert(e.response?.data?.message || 'Failed'));
-                        }}
-                    />
+                    <div className="flex items-center gap-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight">
+                        <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Updated {new Date(team.updated_at || team.created_at).toLocaleDateString()}</span>
+                        <div className="w-[1px] h-3 bg-[var(--border)]" />
+                        <span className="flex items-center gap-1.5"><ShieldCheckIcon className="h-3.5 w-3.5" /> High Confidence</span>
+                    </div>
                 </div>
-            )}
 
-            {/* ── Milestones Tab ── */}
-            {activeTab === 'milestones' && (
-                <MilestonesView
-                    teamId={id}
-                    milestones={milestones}
-                    tasks={tasks}
-                    isLeader={isLeader}
-                    onRefresh={() => { loadMilestones(); loadStats(); }}
-                />
-            )}
+                {/* Tab Navigation */}
+                <div className="flex items-center gap-6 border-b border-[var(--border)] overflow-x-auto no-scrollbar">
+                    {TABS.map(tab => (
+                        <button 
+                            key={tab.key} 
+                            onClick={() => setActiveTab(tab.key)}
+                            className={cn(
+                                "pb-3 text-sm font-bold transition-all relative flex items-center gap-2 px-1 whitespace-nowrap",
+                                activeTab === tab.key ? "text-[var(--color-primary)] border-b-2 border-[var(--color-primary)]" : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                            )}
+                        >
+                            <tab.icon className="h-4 w-4" />
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-            {/* ── Progress Tab ── */}
-            {activeTab === 'progress' && (
-                <ProgressView
-                    teamId={id}
-                    updates={progressUpdates}
-                    isLeader={isLeader}
-                    onRefresh={loadProgress}
-                />
-            )}
+            {/* Content Area */}
+            <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar pb-10">
+                {/* ── Dashboard Tab ── */}
+                {activeTab === 'dashboard' && <ProjectDashboard stats={stats} />}
 
-            {/* ── Chat Tab ── */}
-            {activeTab === 'chat' && (
-                <TeamChat
-                    teamId={id}
-                    currentUser={currentUser}
-                    members={activeMembers}
-                    isLeader={isLeader}
-                />
-            )}
+                {/* ── Tasks Tab ── */}
+                {activeTab === 'tasks' && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="relative min-w-[280px]">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                                    <input placeholder="Filter board..." 
+                                        className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border)] rounded-[3px] text-sm focus:border-[var(--color-primary)] transition-all outline-none font-medium"
+                                        value={taskFilter.search}
+                                        onChange={e => setTaskFilter(f => ({ ...f, search: e.target.value }))} />
+                                </div>
+                                <select className="bg-white border border-[var(--border)] rounded-[3px] px-3 py-2 text-sm font-bold text-[var(--text-secondary)] outline-none hover:bg-[var(--bg-surface-2)] transition-colors"
+                                    value={taskFilter.status}
+                                    onChange={e => setTaskFilter(f => ({ ...f, status: e.target.value }))}>
+                                    <option value="">Any Status</option>
+                                    <option value="TODO">To Do</option>
+                                    <option value="IN_PROGRESS">In Progress</option>
+                                    <option value="REVIEW">Review</option>
+                                    <option value="DONE">Done</option>
+                                </select>
+                                <button className="jira-button bg-white border border-[var(--border)] text-[var(--text-secondary)] h-[38px] px-3 gap-2 font-bold uppercase text-[10px]">
+                                    <Filter className="h-4 w-4" /> More Filters
+                                </button>
+                            </div>
+                            {isLeader && (
+                                <button onClick={() => setShowCreateTask(true)}
+                                    className="jira-button jira-button-primary gap-2 font-bold uppercase text-[10px]">
+                                    <Plus className="h-4 w-4" /> Create Task
+                                </button>
+                            )}
+                        </div>
 
-            {/* ── Files Tab ── */}
-            {activeTab === 'files' && (
-                <FileManager
-                    teamId={id}
-                    currentUser={currentUser}
-                    isLeader={isLeader}
-                />
-            )}
+                        <TaskBoard
+                            tasks={tasks}
+                            onTaskClick={setSelectedTask}
+                            isLeader={isLeader}
+                            onStatusChange={(taskId, status) => {
+                                teamTasksApi.updateTask(id, taskId, { status })
+                                    .then(r => handleTaskUpdated(r.data))
+                                    .catch(e => alert(e.response?.data?.message || 'Failed'));
+                            }}
+                        />
+                    </div>
+                )}
 
-            {/* ── Announcements Tab ── */}
-            {activeTab === 'announcements' && (
-                <Announcements
-                    teamId={id}
-                    currentUser={currentUser}
-                    isLeader={isLeader}
-                />
-            )}
-
-            {/* ── Meetings Tab ── */}
-            {activeTab === 'meetings' && (
-                <MeetingNotes
-                    teamId={id}
-                    currentUser={currentUser}
-                    isLeader={isLeader}
-                    members={activeMembers}
-                />
-            )}
-
-            {/* ── Video Conference Tab ── */}
-            {activeTab === 'video' && (
-                <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden" style={{ minHeight: 560 }}>
-                    <VideoConference
+                {/* ── Milestones Tab ── */}
+                {activeTab === 'milestones' && (
+                    <MilestonesView
                         teamId={id}
-                        teamName={team?.name || 'Team'}
+                        milestones={milestones}
+                        tasks={tasks}
+                        isLeader={isLeader}
+                        onRefresh={() => { loadMilestones(); loadStats(); }}
+                    />
+                )}
+
+                {/* ── Progress Tab ── */}
+                {activeTab === 'progress' && (
+                    <ProgressView
+                        teamId={id}
+                        updates={progressUpdates}
+                        isLeader={isLeader}
+                        onRefresh={loadProgress}
+                    />
+                )}
+
+                {/* ── Chat Tab ── */}
+                {activeTab === 'chat' && (
+                    <TeamChat
+                        teamId={id}
                         currentUser={currentUser}
                         members={activeMembers}
+                        isLeader={isLeader}
                     />
-                </div>
-            )}
+                )}
 
-            {/* ── Members Tab ── */}
-            {activeTab === 'members' && (
-                <div className="bg-white rounded-xl border border-[#E2E8F0] overflow-hidden">
-                    <div className="px-5 py-4 border-b border-[#F1F5F9] flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-[#0F172A]">Team Members ({activeMembers.length})</h2>
-                        {isLeader && (
-                            <button onClick={() => setShowInvite(true)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1D4ED8] text-white text-xs font-semibold rounded-lg hover:bg-[#1E40AF] transition">
-                                <UserPlus className="h-3.5 w-3.5" /> Invite Member
-                            </button>
-                        )}
+                {/* ── Files Tab ── */}
+                {activeTab === 'files' && (
+                    <FileManager
+                        teamId={id}
+                        currentUser={currentUser}
+                        isLeader={isLeader}
+                    />
+                )}
+
+                {/* ── Announcements Tab ── */}
+                {activeTab === 'announcements' && (
+                    <Announcements
+                        teamId={id}
+                        currentUser={currentUser}
+                        isLeader={isLeader}
+                    />
+                )}
+
+                {/* ── Meetings Tab ── */}
+                {activeTab === 'meetings' && (
+                    <MeetingNotes
+                        teamId={id}
+                        currentUser={currentUser}
+                        isLeader={isLeader}
+                        members={activeMembers}
+                    />
+                )}
+
+                {/* ── Video Conference Tab ── */}
+                {activeTab === 'video' && (
+                    <div className="card h-[600px] bg-slate-900 border-none overflow-hidden relative group">
+                        <VideoConference
+                            teamId={id}
+                            teamName={team?.name || 'Team'}
+                            currentUser={currentUser}
+                            members={activeMembers}
+                        />
                     </div>
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-[#F1F5F9] bg-[#F8FAFC]">
-                                <th className="text-left px-5 py-3 text-xs font-semibold text-[#64748B]">Member</th>
-                                <th className="text-left px-5 py-3 text-xs font-semibold text-[#64748B]">Role</th>
-                                <th className="text-left px-5 py-3 text-xs font-semibold text-[#64748B]">Joined</th>
-                                {isLeader && <th className="px-5 py-3" />}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#F1F5F9]">
-                            {activeMembers.map((m: any) => (
-                                <tr key={m.id} className="hover:bg-[#F8FAFC] transition-colors group">
-                                    <td className="px-5 py-3.5">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-[#EFF6FF] flex items-center justify-center text-[#1D4ED8] text-xs font-bold shrink-0">
-                                                {m.user?.name?.charAt(0)?.toUpperCase()}
+                )}
+
+                {/* ── Personnel Tab ── */}
+                {activeTab === 'members' && (
+                    <div className="card overflow-hidden">
+                        <div className="px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-surface-2)] flex items-center justify-between">
+                            <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider">Active Personnel ({activeMembers.length})</h2>
+                            {isLeader && (
+                                <button onClick={() => setShowInvite(true)}
+                                    className="jira-button jira-button-primary h-8 px-3 gap-1.5 font-bold uppercase text-[10px]">
+                                    <UserPlus className="h-3.5 w-3.5" /> Deploy Invite
+                                </button>
+                            )}
+                        </div>
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-[var(--border)]">
+                                    <th className="text-left px-6 py-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Operator</th>
+                                    <th className="text-left px-6 py-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Deployment Role</th>
+                                    <th className="text-left px-6 py-3 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Access Since</th>
+                                    {isLeader && <th className="px-6 py-3" />}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[var(--border)]">
+                                {activeMembers.map((m: any) => (
+                                    <tr key={m.id} className="hover:bg-[var(--bg-surface-2)] transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-full bg-[var(--color-primary-light)] text-[var(--color-primary)] flex items-center justify-center text-xs font-bold shrink-0 border border-blue-100">
+                                                    {m.user?.name?.charAt(0)?.toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                                                        {m.user?.name}
+                                                        {m.user_id === currentUser?.id && <span className="text-[9px] font-bold text-[var(--color-primary)] uppercase tracking-tighter bg-blue-50 px-1 rounded-sm border border-blue-100">Self</span>}
+                                                    </p>
+                                                    <p className="text-[11px] text-[var(--text-muted)] font-medium">{m.user?.email}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-[#0F172A] flex items-center gap-1.5">
-                                                    {m.user?.name}
-                                                    {m.user_id === currentUser?.id && <span className="text-[10px] text-[#94A3B8]">(you)</span>}
-                                                </p>
-                                                <p className="text-xs text-[#94A3B8]">{m.user?.email}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        {isLeader && m.role !== 'LEADER' ? (
-                                            <select className="text-xs font-semibold px-2 py-1 rounded-full border border-[#E2E8F0] bg-white focus:outline-none focus:ring-1 focus:ring-[#1D4ED8]"
-                                                value={m.role}
-                                                onChange={e => handleRoleChange(m.user_id, e.target.value)}
-                                                disabled={actionLoading === m.user_id + m.role}>
-                                                <option value="MEMBER">Member</option>
-                                                <option value="REVIEWER">Reviewer</option>
-                                                <option value="VIEWER">Viewer</option>
-                                            </select>
-                                        ) : (
-                                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ROLE_COLORS[m.role]}`}>
-                                                {m.role === 'LEADER' && <Crown className="h-3 w-3 inline mr-1" />}
-                                                {m.role}
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-5 py-3.5 text-xs text-[#94A3B8]">
-                                        {new Date(m.joined_at).toLocaleDateString()}
-                                    </td>
-                                    {isLeader && (
-                                        <td className="px-5 py-3.5">
-                                            {m.role !== 'LEADER' && (
-                                                <button onClick={() => handleRemoveMember(m.user_id)}
-                                                    disabled={actionLoading === m.user_id}
-                                                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-red-50 text-red-500">
-                                                    <UserMinus className="h-4 w-4" />
-                                                </button>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {isLeader && m.role !== 'LEADER' ? (
+                                                <div className="relative inline-block">
+                                                    <select className="appearance-none text-[10px] font-bold px-3 py-1 pr-8 rounded-[3px] border border-[var(--border)] bg-white focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] cursor-pointer uppercase tracking-tight"
+                                                        value={m.role}
+                                                        onChange={e => handleRoleChange(m.user_id, e.target.value)}
+                                                        disabled={actionLoading === m.user_id + m.role}>
+                                                        <option value="MEMBER">Member</option>
+                                                        <option value="REVIEWER">Reviewer</option>
+                                                        <option value="VIEWER">Viewer</option>
+                                                    </select>
+                                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-muted)] pointer-events-none" />
+                                                </div>
+                                            ) : (
+                                                <span className={cn("text-[10px] font-bold px-3 py-1 rounded-[3px] border uppercase tracking-tight", ROLE_COLORS[m.role])}>
+                                                    {m.role === 'LEADER' && <Crown className="h-3 w-3 inline mr-1 -mt-0.5" />}
+                                                    {m.role}
+                                                </span>
                                             )}
                                         </td>
-                                    )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-
-            {/* ── Activity Tab ── */}
-            {activeTab === 'activity' && (
-                <ActivityFeed teamId={id} />
-            )}
-
-            {/* ── Settings Tab ── */}
-            {activeTab === 'settings' && isLeader && (
-                <div className="space-y-4">
-                    <div className="bg-white rounded-xl border border-[#E2E8F0] p-5">
-                        <h2 className="text-sm font-semibold text-[#0F172A] mb-1">Team Settings</h2>
-                        <p className="text-xs text-[#64748B] mb-4">Manage team configuration and access.</p>
-                        <button onClick={() => setShowEdit(true)}
-                            className="flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-sm font-medium text-[#0F172A] rounded-lg transition">
-                            <Settings className="h-4 w-4" /> Edit Team Details
-                        </button>
+                                        <td className="px-6 py-4 text-[11px] text-[var(--text-muted)] font-bold uppercase tracking-tight">
+                                            {new Date(m.joined_at).toLocaleDateString()}
+                                        </td>
+                                        {isLeader && (
+                                            <td className="px-6 py-4">
+                                                {m.role !== 'LEADER' && (
+                                                    <button onClick={() => handleRemoveMember(m.user_id)}
+                                                        disabled={actionLoading === m.user_id}
+                                                        className="opacity-0 group-hover:opacity-100 transition-all p-2 rounded-[3px] hover:bg-red-50 text-red-500">
+                                                        <UserMinus className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                    <div className="bg-white rounded-xl border border-red-200 p-5">
-                        <h2 className="text-sm font-semibold text-red-700 mb-1">Danger Zone</h2>
-                        <p className="text-xs text-[#64748B] mb-4">These actions are irreversible.</p>
-                        <button onClick={handleArchive}
-                            className="flex items-center gap-2 px-4 py-2 border border-red-200 bg-red-50 hover:bg-red-100 text-sm font-medium text-red-700 rounded-lg transition">
-                            <Trash2 className="h-4 w-4" /> Archive Team
-                        </button>
-                    </div>
-                </div>
-            )}
+                )}
 
-            {/* Modals */}
+                {/* ── Activity Feed Tab ── */}
+                {activeTab === 'activity' && (
+                    <ActivityFeed teamId={id} />
+                )}
+
+                {/* ── Settings Tab ── */}
+                {activeTab === 'settings' && isLeader && (
+                    <div className="space-y-6">
+                        <div className="card p-6">
+                            <h2 className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-wider mb-2">Team Parameters</h2>
+                            <p className="text-xs text-[var(--text-muted)] mb-6 font-medium">Modify the core configuration and governance of this workspace.</p>
+                            <button onClick={() => setShowEdit(true)}
+                                className="jira-button border border-[var(--border)] bg-white text-[var(--text-secondary)] h-10 px-4 gap-2 font-bold uppercase text-[11px]">
+                                <Settings className="h-4 w-4" /> Edit Configuration
+                            </button>
+                        </div>
+                        <div className="card p-6 border-red-200">
+                            <h2 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-2">Restricted Actions</h2>
+                            <p className="text-xs text-[var(--text-muted)] mb-6 font-medium">Critical operations that impact the entire team unit. Proceed with caution.</p>
+                            <button onClick={handleArchive}
+                                className="jira-button bg-red-50 border border-red-200 text-red-700 h-10 px-4 gap-2 font-bold uppercase text-[11px] hover:bg-red-100">
+                                <Trash2 className="h-4 w-4" /> Decommission Team
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Modals & Overlays */}
             {showInvite && (
                 <InviteMemberModal teamId={id} inviteCode={team.invite_code} onClose={() => setShowInvite(false)} />
             )}
@@ -529,5 +550,14 @@ export default function TeamWorkspacePage() {
                 />
             )}
         </div>
+    );
+}
+
+function ShieldCheckIcon({ className }: { className?: string }) {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+            <path d="m9 12 2 2 4-4" />
+        </svg>
     );
 }

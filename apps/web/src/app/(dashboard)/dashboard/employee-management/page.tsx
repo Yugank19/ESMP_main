@@ -1,12 +1,16 @@
-﻿"use client";
-import { useEffect, useState } from 'react';
+"use client";
+
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Users, UserPlus, Search, Edit2, UserX, X, Check,
   Mail, Phone, Building, Briefcase, RefreshCw, AlertCircle,
-  ShieldCheck, ArrowRight, Loader2
-, ArrowLeft} from 'lucide-react';
+  ShieldCheck, ArrowRight, Loader2, ArrowLeft, ChevronRight,
+  Shield, Zap, Activity, Globe, MoreHorizontal, CheckCircle2,
+  Lock, Terminal
+} from 'lucide-react';
 import { getEmployees, getDepartments, createEmployee, updateEmployee, deactivateEmployee, sendEmployeeOtp, verifyEmployeeOtp } from '@/lib/employees-api';
+import { cn } from '@/lib/utils';
 
 const DESIGNATIONS = [
   'Software Engineer', 'Senior Engineer', 'Tech Lead', 'Engineering Manager',
@@ -21,11 +25,14 @@ const DEPARTMENTS = [
   'Sales', 'Design', 'Legal', 'IT', 'Support',
 ];
 
-const STATUS_STYLE: Record<string, { label: string; dot: string; text: string }> = {
-  ACTIVE:   { label: 'Active',   dot: '#00875A', text: '#00875A' },
-  INACTIVE: { label: 'Inactive', dot: '#DE350B', text: '#DE350B' },
-  PENDING:  { label: 'Pending',  dot: '#FF8B00', text: '#FF8B00' },
+const STATUS_STYLE: Record<string, { label: string; bg: string; text: string; border: string }> = {
+  ACTIVE:   { label: 'ACTIVE',   bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-100' },
+  INACTIVE: { label: 'INACTIVE', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100' },
+  PENDING:  { label: 'PENDING',  bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-100' },
 };
+
+const inputClass = "w-full px-3 py-2.5 bg-white border border-[var(--border)] rounded-[3px] text-sm font-bold text-[var(--text-primary)] placeholder:text-slate-200 outline-none focus:border-[var(--color-primary)] transition-all uppercase tracking-tight";
+const labelClass = "text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-1.5 block pl-1";
 
 export default function EmployeeManagementPage() {
   const router = useRouter();
@@ -50,6 +57,16 @@ export default function EmployeeManagementPage() {
     name: '', phone: '', department: '', designation: '', status: 'ACTIVE',
   });
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [emp, depts] = await Promise.all([getEmployees(), getDepartments()]);
+      setEmployees(Array.isArray(emp) ? emp : []);
+      if (Array.isArray(depts) && depts.length > 0) setDepartments(depts);
+    } catch { }
+    finally { setLoading(false); }
+  }, []);
+
   useEffect(() => {
     const s = localStorage.getItem('user');
     if (!s) { router.push('/login'); return; }
@@ -57,30 +74,11 @@ export default function EmployeeManagementPage() {
     const role = (u.roles?.[0] || '').toUpperCase();
     if (!['MANAGER', 'ADMIN'].includes(role)) { router.push('/dashboard'); return; }
     load();
-  }, []);
-
-  async function load() {
-    setLoading(true);
-    try {
-      const [emp, depts] = await Promise.all([getEmployees(), getDepartments()]);
-      setEmployees(Array.isArray(emp) ? emp : []);
-      // Only override hardcoded list if API returns valid data
-      if (Array.isArray(depts) && depts.length > 0) setDepartments(depts);
-    } catch {}
-    setLoading(false);
-  }
+  }, [load, router]);
 
   function showToast(msg: string) {
     setToast(msg);
     setTimeout(() => setToast(''), 3500);
-  }
-
-  function openAddModal() {
-    setAddStep('email');
-    setAddEmail('');
-    setAddOtp('');
-    setAddForm({ name: '', email: '', phone: '', department: '', designation: '' });
-    setShowAdd(true);
   }
 
   function startCooldown() {
@@ -90,35 +88,36 @@ export default function EmployeeManagementPage() {
 
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
-    if (!addEmail.endsWith('@gmail.com')) { showToast('Only @gmail.com addresses are allowed'); return; }
+    if (!addEmail.endsWith('@gmail.com')) { showToast('GMAIL PROTOCOL ENFORCED'); return; }
     setSubmitting(true);
     try {
       const res = await sendEmployeeOtp(addEmail);
       if (res.statusCode && res.statusCode >= 400) {
-        showToast(res.message || 'Failed to send OTP');
+        showToast(res.message || 'OTP_TRANSMISSION_FAILED');
       } else {
         setAddStep('otp');
         startCooldown();
-        showToast('OTP sent to employee email');
+        showToast('OTP_BROADCAST_SUCCESSFUL');
       }
-    } catch { showToast('Failed to send OTP — check API connection'); }
-    setSubmitting(false);
+    } catch { showToast('COMMUNICATION_LINK_ERROR'); }
+    finally { setSubmitting(false); }
   }
 
   async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault();
-    if (addOtp.length !== 6) { showToast('Enter the 6-digit OTP'); return; }
+    if (addOtp.length !== 6) { showToast('INVALID_AUTH_CODE'); return; }
     setSubmitting(true);
     try {
       const res = await verifyEmployeeOtp(addEmail, addOtp);
       if (res.statusCode && res.statusCode >= 400) {
-        showToast(res.message || 'Invalid OTP');
+        showToast(res.message || 'X_VERIFICATION_FAILED');
       } else {
         setAddForm(f => ({ ...f, email: addEmail }));
         setAddStep('details');
+        showToast('IDENTITY_CONFIRMED');
       }
-    } catch { showToast('OTP verification failed'); }
-    setSubmitting(false);
+    } catch { showToast('CORE_AUTHENTICATION_ERROR'); }
+    finally { setSubmitting(false); }
   }
 
   async function handleAdd(e: React.FormEvent) {
@@ -128,15 +127,15 @@ export default function EmployeeManagementPage() {
     try {
       const res = await createEmployee({ ...addForm, email: addEmail });
       if (res.statusCode && res.statusCode >= 400) {
-        showToast(res.message || 'Failed to create employee');
+        showToast(res.message || 'ACCOUNT_INITIALIZATION_ERROR');
       } else {
-        showToast(res.message || 'Employee created successfully');
+        showToast('PERSONNEL_REGISTERED_SUCCESSFULLY');
         setShowAdd(false);
         setAddForm({ name: '', email: '', phone: '', department: '', designation: '' });
         load();
       }
-    } catch { showToast('Error creating employee'); }
-    setSubmitting(false);
+    } catch { showToast('PRIMARY_STORAGE_ERROR'); }
+    finally { setSubmitting(false); }
   }
 
   async function handleEdit(e: React.FormEvent) {
@@ -145,32 +144,27 @@ export default function EmployeeManagementPage() {
     setSubmitting(true);
     try {
       await updateEmployee(editTarget.id, editForm);
-      showToast('Employee updated successfully');
+      showToast('RECORD_SYNCHRONIZATION_COMPLETE');
       setEditTarget(null);
       load();
-    } catch { showToast('Failed to update employee'); }
-    setSubmitting(false);
+    } catch { showToast('MODIFICATION_REJECTED'); }
+    finally { setSubmitting(false); }
   }
 
   async function handleDeactivate(emp: any) {
-    if (!confirm(`Deactivate ${emp.name}? They will lose access to ESMP.`)) return;
+    if (!confirm(`Purge personnel authorization for ${emp.name}?`)) return;
     try {
       await deactivateEmployee(emp.id);
-      showToast(`${emp.name} has been deactivated`);
+      showToast('ACCESS_REVOKED');
       load();
-    } catch { showToast('Failed to deactivate employee'); }
-  }
-
-  function openEdit(emp: any) {
-    setEditTarget(emp);
-    setEditForm({ name: emp.name, phone: emp.phone || '', department: emp.department, designation: emp.designation, status: emp.status });
+    } catch { showToast('DEACTIVATION_PROTOCOL_FAILED'); }
   }
 
   const filtered = employees.filter(e => {
-    const matchSearch = !search || e.name?.toLowerCase().includes(search.toLowerCase()) || e.email?.toLowerCase().includes(search.toLowerCase());
-    const matchDept = !filterDept || e.department === filterDept;
-    const matchStatus = !filterStatus || e.status === filterStatus;
-    return matchSearch && matchDept && matchStatus;
+    const ms = !search || e.name?.toLowerCase().includes(search.toLowerCase()) || e.email?.toLowerCase().includes(search.toLowerCase());
+    const md = !filterDept || e.department === filterDept;
+    const mt = !filterStatus || e.status === filterStatus;
+    return ms && md && mt;
   });
 
   const stats = {
@@ -181,180 +175,176 @@ export default function EmployeeManagementPage() {
   };
 
   return (
-    <div className="space-y-5">
-      {/* Toast */}
+    <div className="flex flex-col space-y-8 animate-in fade-in duration-300 pb-12">
+      {/* Toast Notification Terminal */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded shadow-2xl text-sm font-medium text-white"
-          style={{ backgroundColor: '#172B4D', minWidth: 280 }}>
-          <Check className="h-4 w-4 text-green-400 shrink-0" />
-          {toast}
+        <div className="fixed bottom-10 right-10 z-[200] flex items-center gap-4 px-6 py-4 bg-slate-900 text-white rounded-[3px] shadow-2xl animate-in slide-in-from-right-8 duration-300 border-l-4 border-l-[var(--color-primary)]">
+          <Terminal className="h-4 w-4 text-[var(--color-primary)]" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em]">{toast}</span>
+          <button onClick={() => setToast('')} className="ml-4 opacity-50 hover:opacity-100"><X className="h-4 w-4" /></button>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      {/* Header Section */}
+      <div className="flex items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
           <button onClick={() => router.back()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-            style={{ color: 'var(--text-secondary)', background: 'var(--bg-surface-2)' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-3)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}>
-            <ArrowLeft className="h-4 w-4" /> Back
+            className="p-2.5 rounded-[3px] bg-white border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all shadow-sm">
+            <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Employee Management</h1>
-            <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>Create and manage employee accounts for your team</p>
+            <h1 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Personnel Intelligence Registry</h1>
+            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest">Enterprise resource management / sector authorization control</p>
           </div>
         </div>
-        <button onClick={openAddModal}
-          className="flex items-center gap-2 px-4 py-2 rounded text-sm font-semibold text-white transition-colors"
-          style={{ backgroundColor: 'var(--jira-blue)' }}
-          onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--jira-blue-hover)')}
-          onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'var(--jira-blue)')}>
-          <UserPlus className="h-4 w-4" /> Add Employee
+        <button onClick={() => { setAddStep('email'); setShowAdd(true); }}
+          className="jira-button jira-button-primary h-12 px-8 gap-3 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">
+          <UserPlus className="h-4 w-4" /> Recruit Personnel
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* High-Fidelity Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Total Employees', value: stats.total, color: '#0052CC', bg: '#DEEBFF' },
-          { label: 'Active', value: stats.active, color: '#00875A', bg: '#E3FCEF' },
-          { label: 'Inactive', value: stats.inactive, color: '#DE350B', bg: '#FFEBE6' },
-          { label: 'Awaiting Password Change', value: stats.pending, color: '#FF8B00', bg: '#FFFAE6' },
+          { label: 'Global Workforce', value: stats.total, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', desc: 'Active identification records' },
+          { label: 'Authorized Units', value: stats.active, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', desc: 'Secure operational status' },
+          { label: 'Neutralized Links', value: stats.inactive, icon: UserX, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', desc: 'Access hierarchy purged' },
+          { label: 'Awaiting Verification', value: stats.pending, icon: Lock, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', desc: 'Pending first synchronization' },
         ].map(c => (
-          <div key={c.label} className="rounded p-4" style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-e100)' }}>
-            <p className="text-2xl font-bold" style={{ color: c.color }}>{c.value}</p>
-            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{c.label}</p>
+          <div key={c.label} className="card p-6 border-[var(--border)] hover:border-[var(--color-primary)] transition-all group">
+            <div className="flex items-start justify-between mb-4">
+                 <div className={cn("w-12 h-12 rounded-[3px] flex items-center justify-center border shadow-sm transition-transform group-hover:scale-110", c.bg, c.border)}>
+                    <c.icon className={cn("h-6 w-6", c.color)} />
+                 </div>
+                 <Zap className="h-4 w-4 text-slate-100 group-hover:text-blue-100 transition-colors" />
+            </div>
+            <div>
+              <p className="text-3xl font-black text-[var(--text-primary)] tracking-tight">{c.value}</p>
+              <p className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-widest mt-1">{c.label}</p>
+              <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tighter mt-1 opacity-60">{c.desc}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-48">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--text-muted)' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or email..."
-            className="w-full pl-9 pr-3 py-2 border rounded text-sm outline-none"
-            style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
+      {/* Advanced Filter Terminal */}
+      <div className="flex gap-4 flex-wrap">
+        <div className="relative flex-1 min-w-[320px] group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-[var(--color-primary)] transition-colors" />
+          <input 
+            value={search} 
+            onChange={e => setSearch(e.target.value)} 
+            placeholder="SEARCH PERSONNEL BY NAME, EMAIL, OR SIGNATURE..."
+            className="w-full pl-12 pr-6 py-4 bg-white border border-[var(--border)] rounded-[3px] text-[11px] font-bold uppercase tracking-[0.2em] placeholder:text-slate-200 outline-none focus:border-[var(--color-primary)] shadow-sm transition-all" />
         </div>
-        <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
-          className="border rounded px-3 py-2 text-sm outline-none"
-          style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-          <option value="">All Departments</option>
-          {departments.map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-          className="border rounded px-3 py-2 text-sm outline-none"
-          style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-          <option value="">All Statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-        </select>
-        <button onClick={load} className="p-2 border rounded transition-colors"
-          style={{ borderColor: 'var(--border)', color: 'var(--text-muted)', background: 'var(--bg-surface)' }}
-          onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}
-          onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-surface)')}>
-          <RefreshCw className="h-4 w-4" />
+        <div className="relative group">
+            <Building className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-primary)]" />
+            <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
+              className="bg-white border border-[var(--border)] rounded-[3px] pl-12 pr-10 py-4 text-[10px] font-bold uppercase tracking-widest text-[var(--text-primary)] focus:border-[var(--color-primary)] outline-none appearance-none cursor-pointer shadow-sm transition-all hover:bg-slate-50">
+              <option value="">ALL_SECTORS</option>
+              {departments.map(d => <option key={d} value={d}>{d}_UNIT</option>)}
+            </select>
+            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none rotate-90" />
+        </div>
+        <div className="relative group">
+            <Shield className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-primary)]" />
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+              className="bg-white border border-[var(--border)] rounded-[3px] pl-12 pr-10 py-4 text-[10px] font-bold uppercase tracking-widest text-[var(--text-primary)] focus:border-[var(--color-primary)] outline-none appearance-none cursor-pointer shadow-sm transition-all hover:bg-slate-50">
+              <option value="">ALL_STATUSES</option>
+              <option value="ACTIVE">ACTIVE_PROTOCOL</option>
+              <option value="INACTIVE">NEUTRALIZED_PROTOCOL</option>
+            </select>
+            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none rotate-90" />
+        </div>
+        <button onClick={load} className="p-4 bg-white border border-[var(--border)] rounded-[3px] text-slate-400 hover:text-[var(--color-primary)] hover:border-blue-300 transition-all shadow-sm">
+          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
         </button>
       </div>
 
-      {/* Table */}
-      <div className="rounded overflow-hidden" style={{ background: 'var(--bg-surface)', boxShadow: 'var(--shadow-e100)' }}>
+      {/* Personnel Data Grid */}
+      <div className="card p-0 overflow-hidden shadow-sm">
         {loading ? (
-          <div className="p-12 text-center text-sm" style={{ color: 'var(--text-muted)' }}>Loading employees...</div>
+             <div className="flex flex-col items-center justify-center py-32 gap-4 opacity-40">
+                  <div className="h-8 w-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Executing Data Stream Query...</span>
+             </div>
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center">
-            <Users className="h-10 w-10 mx-auto mb-3" style={{ color: 'var(--text-muted)' }} />
-            <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
-              {employees.length === 0 ? 'No employees yet' : 'No employees match your filters'}
-            </p>
-            {employees.length === 0 && (
-              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-                Click "Add Employee" to create the first employee account
-              </p>
-            )}
+          <div className="p-32 text-center flex flex-col items-center opacity-30">
+            <Users className="h-20 w-20 text-[var(--text-muted)] mb-6 stroke-[1px]" />
+            <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Registry Vacant</h3>
+            <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">No personnel records detected within synchronized parameters.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto no-scrollbar">
+            <table className="w-full text-sm border-collapse">
               <thead>
-                <tr style={{ borderBottom: `1px solid var(--border)`, background: 'var(--bg-surface-2)' }}>
-                  {['Employee', 'Department', 'Designation', 'Contact', 'Status', 'Joined', 'Actions'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider"
-                      style={{ color: 'var(--text-muted)' }}>{h}</th>
+                <tr className="bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
+                  {['Personnel Entity', 'Department Sector', 'Tactical Designation', 'Communication Link', 'Auth Status', 'Joined', 'Actions'].map(h => (
+                    <th key={h} className="text-left px-8 py-5 text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {filtered.map(emp => {
                   const st = STATUS_STYLE[emp.status] || STATUS_STYLE.ACTIVE;
                   return (
-                    <tr key={emp.id} style={{ borderBottom: `1px solid var(--border)` }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-surface-2)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = '')}>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                            style={{ background: 'var(--jira-blue)' }}>
+                    <tr key={emp.id} className="group hover:bg-slate-50/50 transition-colors">
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-[3px] bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 text-xs font-black shadow-inner transition-transform group-hover:scale-110">
                             {emp.name?.[0]?.toUpperCase() || '?'}
                           </div>
-                          <div>
-                            <p className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{emp.name}</p>
-                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{emp.email}</p>
+                          <div className="min-w-0">
+                            <p className="font-bold text-sm text-[var(--text-primary)] uppercase tracking-tight group-hover:text-[var(--color-primary)] transition-colors">{emp.name}</p>
+                            <p className="text-[10px] font-bold text-slate-400 tracking-tighter lowercase">{emp.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <Building className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
-                          <span style={{ color: 'var(--text-secondary)' }}>{emp.department}</span>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-2.5">
+                          <Building className="h-3.5 w-3.5 text-slate-300" />
+                          <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">{emp.department}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <Briefcase className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
-                          <span style={{ color: 'var(--text-secondary)' }}>{emp.designation}</span>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-2.5">
+                          <Briefcase className="h-3.5 w-3.5 text-slate-300" />
+                          <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">{emp.designation}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-8 py-5">
                         {emp.phone && (
-                          <div className="flex items-center gap-1.5">
-                            <Phone className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--text-muted)' }} />
-                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{emp.phone}</span>
+                          <div className="flex items-center gap-2.5">
+                            <Phone className="h-3.5 w-3.5 text-slate-300" />
+                            <span className="text-[10px] font-bold text-slate-400 tabular-nums">{emp.phone}</span>
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: st.dot }} />
-                          <span className="text-xs font-semibold" style={{ color: st.text }}>{st.label}</span>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                          <span className={cn("px-2.5 py-1 text-[9px] font-extrabold border rounded-[2px] uppercase tracking-widest shadow-sm", st.bg, st.text, st.border)}>
+                               {st.label}
+                          </span>
                           {emp.must_change_password && (
-                            <span title="Awaiting first login" className="ml-1">
-                              <AlertCircle className="h-3.5 w-3.5" style={{ color: '#FF8B00' }} />
-                            </span>
+                            <div title="PENDING_INITIAL_AUTH">
+                               <Lock className="h-3.5 w-3.5 text-orange-400 animate-pulse" />
+                            </div>
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-xs" style={{ color: 'var(--text-muted)' }}>
-                        {new Date(emp.created_at).toLocaleDateString()}
+                      <td className="px-8 py-5 whitespace-nowrap">
+                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-tighter tabular-nums">{new Date(emp.created_at).toLocaleDateString()}</span>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => openEdit(emp)} title="Edit"
-                            className="p-1.5 rounded transition-colors"
-                            style={{ color: 'var(--text-muted)' }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-surface-3)'; e.currentTarget.style.color = 'var(--jira-blue)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                            <Edit2 className="h-4 w-4" />
+                      <td className="px-8 py-5">
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => { setEditTarget(emp); setEditForm({ name: emp.name, phone: emp.phone || '', department: emp.department, designation: emp.designation, status: emp.status }); }}
+                            className="p-2 rounded-[2px] bg-white border border-[var(--border)] text-slate-400 hover:text-[var(--color-primary)] hover:border-blue-300 transition-all shadow-sm">
+                            <Edit2 className="h-3.5 w-3.5" />
                           </button>
                           {emp.status === 'ACTIVE' && (
-                            <button onClick={() => handleDeactivate(emp)} title="Deactivate"
-                              className="p-1.5 rounded transition-colors"
-                              style={{ color: 'var(--text-muted)' }}
-                              onMouseEnter={e => { e.currentTarget.style.background = '#FFEBE6'; e.currentTarget.style.color = '#DE350B'; }}
-                              onMouseLeave={e => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-                              <UserX className="h-4 w-4" />
+                            <button onClick={() => handleDeactivate(emp)}
+                              className="p-2 rounded-[2px] bg-red-50 border border-red-100 text-red-400 hover:text-red-700 hover:bg-red-100 transition-all shadow-sm">
+                              <UserX className="h-3.5 w-3.5" />
                             </button>
                           )}
                         </div>
@@ -368,246 +358,233 @@ export default function EmployeeManagementPage() {
         )}
       </div>
 
-      {/* Add Employee Modal — 3 steps: Email → OTP → Details */}
+      {/* Recruitment Modal — Multi-Step Auth Flow */}
       {showAdd && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-lg rounded-lg p-6" style={{ background: 'var(--bg-surface)' }}>
-            {/* Header */}
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Add New Employee</h2>
-              <button onClick={() => setShowAdd(false)}>
-                <X className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[3px] shadow-2xl w-full max-w-lg overflow-hidden border border-[var(--border)] animate-in zoom-in-95 duration-200 flex flex-col">
+            <div className="px-8 py-6 bg-[var(--bg-surface-2)] border-b border-[var(--border)] flex items-center justify-between">
+              <div>
+                  <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
+                      <UserPlus className="h-4 w-4 text-[var(--color-primary)]" /> Personnel Intake Terminal
+                  </h2>
+              </div>
+              <button onClick={() => setShowAdd(false)} className="p-1.5 rounded-[3px] hover:bg-white border border-transparent transition-all">
+                <X className="h-4 w-4 text-slate-400" />
               </button>
             </div>
 
-            {/* Step indicator */}
-            <div className="flex items-center gap-2 mb-5">
-              {[{ label: 'Email', step: 'email' }, { label: 'Verify OTP', step: 'otp' }, { label: 'Details', step: 'details' }].map((s, i) => {
+            {/* Tactical Step Indicator */}
+            <div className="px-10 py-6 bg-slate-50/50 flex items-center gap-4">
+              {[
+                  { id: 'email', icon: Mail, label: 'GMAIL_LINK' },
+                  { id: 'otp', icon: ShieldCheck, label: 'AUTH_VERIFY' },
+                  { id: 'details', icon: Users, label: 'RECORD_FINAL' }
+              ].map((s, i) => {
                 const steps = ['email', 'otp', 'details'];
                 const current = steps.indexOf(addStep);
                 const isDone = i < current;
                 const isActive = i === current;
                 return (
-                  <div key={s.step} className="flex items-center gap-1.5 flex-1">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isDone ? 'bg-green-500 text-white' : isActive ? 'text-white' : 'text-[#97A0AF]'}`}
-                      style={{ backgroundColor: isDone ? '#00875A' : isActive ? 'var(--jira-blue)' : 'var(--bg-surface-3)' }}>
-                      {isDone ? '✓' : i + 1}
+                  <div key={s.id} className="flex items-center gap-3 flex-1 last:flex-none">
+                    <div className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all border-2 shadow-sm",
+                        isDone ? "bg-emerald-500 border-emerald-500 text-white" : isActive ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white scale-110 shadow-lg" : "bg-white border-slate-200 text-slate-300"
+                    )}>
+                      {isDone ? <Check className="h-4 w-4" /> : <s.icon className="h-4 w-4" />}
                     </div>
-                    <span className="text-xs font-medium" style={{ color: isActive ? 'var(--text-primary)' : 'var(--text-muted)' }}>{s.label}</span>
-                    {i < 2 && <div className="flex-1 h-px" style={{ background: isDone ? '#00875A' : 'var(--border)' }} />}
+                    {i < 2 && <div className={cn("flex-1 h-0.5 rounded-full mx-2", isDone ? "bg-emerald-500" : "bg-slate-200")} />}
                   </div>
                 );
               })}
             </div>
 
-            {/* Step 1: Email */}
-            {addStep === 'email' && (
-              <form onSubmit={handleSendOtp} className="space-y-4">
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  Enter the employee's Gmail address. An OTP will be sent to verify it.
-                </p>
-                <div>
-                  <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Employee Gmail *</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--text-muted)' }} />
-                    <input required type="email" value={addEmail} onChange={e => setAddEmail(e.target.value)}
-                      placeholder="employee@gmail.com"
-                      className="w-full pl-9 pr-3 py-2.5 border rounded text-sm outline-none"
-                      style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <button type="submit" disabled={submitting}
-                    className="flex-1 py-2.5 rounded text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
-                    style={{ backgroundColor: 'var(--jira-blue)' }}>
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                    {submitting ? 'Sending...' : 'Send OTP'}
-                  </button>
-                  <button type="button" onClick={() => setShowAdd(false)}
-                    className="px-4 py-2.5 rounded text-sm border"
-                    style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>Cancel</button>
-                </div>
-              </form>
-            )}
+            <div className="p-10">
+                {addStep === 'email' && (
+                  <form onSubmit={handleSendOtp} className="space-y-6">
+                    <div>
+                         <h3 className="text-lg font-bold text-[var(--text-primary)] uppercase tracking-tight">Identity Initialization</h3>
+                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">GMAIL_PROTOCOL_LOCK: Active</p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className={labelClass}>Operational Gmail *</label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                        <input required type="email" value={addEmail} onChange={e => setAddEmail(e.target.value)}
+                          placeholder="IDENTIFIER@GMAIL.COM"
+                          className={cn(inputClass, "pl-12 lowercase")} />
+                      </div>
+                    </div>
+                    <div className="flex gap-4 pt-4">
+                      <button type="submit" disabled={submitting}
+                        className="jira-button jira-button-primary h-12 flex-1 gap-3 font-bold uppercase text-[10px] disabled:opacity-50">
+                        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+                        Transmit Auth Token
+                      </button>
+                      <button type="button" onClick={() => setShowAdd(false)} className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Abort</button>
+                    </div>
+                  </form>
+                )}
 
-            {/* Step 2: OTP */}
-            {addStep === 'otp' && (
-              <form onSubmit={handleVerifyOtp} className="space-y-4">
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  Enter the 6-digit OTP sent to <strong style={{ color: 'var(--text-primary)' }}>{addEmail}</strong>
-                </p>
-                <div>
-                  <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Verification Code</label>
-                  <input type="text" inputMode="numeric" maxLength={6} value={addOtp}
-                    onChange={e => setAddOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="000000"
-                    className="w-full px-4 py-3 border rounded text-2xl font-bold text-center tracking-[0.5em] outline-none"
-                    style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--jira-blue)' }} />
-                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>Check the employee's Gmail inbox and spam folder.</p>
-                </div>
-                <div className="flex gap-3">
-                  <button type="submit" disabled={submitting || addOtp.length !== 6}
-                    className="flex-1 py-2.5 rounded text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
-                    style={{ backgroundColor: 'var(--jira-blue)' }}>
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-                    {submitting ? 'Verifying...' : 'Verify OTP'}
-                  </button>
-                  <button type="button" onClick={async () => {
-                    if (otpCooldown > 0 || submitting) return;
-                    setSubmitting(true);
-                    try {
-                      await sendEmployeeOtp(addEmail);
-                      startCooldown();
-                      showToast('OTP resent');
-                    } catch { showToast('Failed to resend OTP'); }
-                    setSubmitting(false);
-                  }} disabled={otpCooldown > 0 || submitting}
-                    className="px-4 py-2.5 rounded text-sm border disabled:opacity-40"
-                    style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-                    {otpCooldown > 0 ? `Resend (${otpCooldown}s)` : 'Resend'}
-                  </button>
-                </div>
-              </form>
-            )}
+                {addStep === 'otp' && (
+                  <form onSubmit={handleVerifyOtp} className="space-y-6">
+                    <div className="text-center">
+                         <div className="w-16 h-16 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-4">
+                              <ShieldCheck className="h-8 w-8 text-[var(--color-primary)]" />
+                         </div>
+                         <h3 className="text-lg font-bold text-[var(--text-primary)] uppercase tracking-tight">Verification Required</h3>
+                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">TOKEN TRANSMITTED TO: {addEmail}</p>
+                    </div>
+                    <div className="space-y-1.5 text-center">
+                      <label className={labelClass}>6-DIGIT AUTHENTICATION TOKEN</label>
+                      <input type="text" inputMode="numeric" maxLength={6} value={addOtp}
+                        onChange={e => setAddOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="XXXXXX"
+                        className="w-full bg-slate-50 border border-[var(--border)] rounded-[3px] py-4 text-3xl font-black text-center tracking-[0.6em] outline-none focus:border-[var(--color-primary)] text-[var(--color-primary)]" />
+                    </div>
+                    <div className="flex gap-4 pt-4">
+                      <button type="submit" disabled={submitting || addOtp.length !== 6}
+                        className="jira-button jira-button-primary h-12 flex-1 gap-3 font-bold uppercase text-[10px] disabled:opacity-50">
+                        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
+                        Verify Identity
+                      </button>
+                      <button type="button" onClick={async () => {
+                        if (otpCooldown > 0 || submitting) return;
+                        setSubmitting(true);
+                        try { await sendEmployeeOtp(addEmail); startCooldown(); showToast('OTP_REGENERATED'); } catch { } finally { setSubmitting(false); }
+                      }} disabled={otpCooldown > 0 || submitting}
+                        className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px] disabled:opacity-30">
+                        {otpCooldown > 0 ? `REGEN: ${otpCooldown}S` : 'Request Resend'}
+                      </button>
+                    </div>
+                  </form>
+                )}
 
-            {/* Step 3: Details */}
-            {addStep === 'details' && (
-              <form onSubmit={handleAdd} className="space-y-4">
-                <div className="flex items-center gap-2 p-2.5 rounded" style={{ background: '#E3FCEF', border: '1px solid #00875A' }}>
-                  <Check className="h-4 w-4 shrink-0" style={{ color: '#00875A' }} />
-                  <p className="text-xs font-semibold" style={{ color: '#00875A' }}>Email verified: {addEmail}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Full Name *</label>
-                    <div className="relative">
-                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--text-muted)' }} />
-                      <input required value={addForm.name} onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))}
-                        placeholder="John Smith"
-                        className="w-full pl-9 pr-3 py-2 border rounded text-sm outline-none"
-                        style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
+                {addStep === 'details' && (
+                  <form onSubmit={handleAdd} className="space-y-6">
+                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-[3px] flex items-center gap-4">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                      <div>
+                          <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest">Identity Verified</p>
+                          <p className="text-[11px] font-bold text-emerald-600 tracking-tight">{addEmail}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Phone</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--text-muted)' }} />
-                      <input value={addForm.phone} onChange={e => setAddForm(f => ({ ...f, phone: e.target.value }))}
-                        placeholder="+1 555 0000"
-                        className="w-full pl-9 pr-3 py-2 border rounded text-sm outline-none"
-                        style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
+                    
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1.5">
+                        <label className={labelClass}>Full Personnel Name *</label>
+                        <input required value={addForm.name} onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))}
+                          placeholder="FULL_ENTITY_NAME" className={cn(inputClass, "uppercase")} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className={labelClass}>Tactical Phine Link</label>
+                        <input value={addForm.phone} onChange={e => setAddForm(f => ({ ...f, phone: e.target.value }))}
+                          placeholder="+X XXX-XXXX" className={inputClass} />
+                      </div>
                     </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Department *</label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
-                      <select required value={addForm.department} onChange={e => setAddForm(f => ({ ...f, department: e.target.value }))}
-                        className="w-full pl-9 pr-3 py-2 border rounded text-sm outline-none"
-                        style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-                        <option value="">Select department</option>
-                        {departments.map(d => <option key={d} value={d}>{d}</option>)}
-                      </select>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-1.5">
+                        <label className={labelClass}>Target Sector *</label>
+                        <div className="relative">
+                          <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
+                          <select required value={addForm.department} onChange={e => setAddForm(f => ({ ...f, department: e.target.value }))}
+                            className={cn(inputClass, "pl-10 appearance-none bg-slate-50")}>
+                            <option value="">SELECT_SECTOR</option>
+                            {departments.map(d => <option key={d} value={d}>{d}_UNIT</option>)}
+                          </select>
+                          <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 rotate-90" />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className={labelClass}>Core Designation *</label>
+                        <div className="relative">
+                          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
+                          <select required value={addForm.designation} onChange={e => setAddForm(f => ({ ...f, designation: e.target.value }))}
+                            className={cn(inputClass, "pl-10 appearance-none bg-slate-50")}>
+                            <option value="">SELECT_ROLE</option>
+                            {DESIGNATIONS.map(d => <option key={d} value={d}>{d.toUpperCase()}</option>)}
+                          </select>
+                          <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 rotate-90" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Designation *</label>
-                    <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none" style={{ color: 'var(--text-muted)' }} />
-                      <select required value={addForm.designation} onChange={e => setAddForm(f => ({ ...f, designation: e.target.value }))}
-                        className="w-full pl-9 pr-3 py-2 border rounded text-sm outline-none"
-                        style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-                        <option value="">Select designation</option>
-                        {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                      </select>
+
+                    <div className="p-4 bg-blue-50 border border-blue-100 rounded-[3px] border-l-4 border-l-blue-500">
+                      <p className="text-[10px] font-bold text-blue-700 leading-relaxed uppercase tracking-widest">
+                        System will generate a primary decryption key (password) and transmit to entity mailbox. Role: EMPLOYEE_LEVEL_3.
+                      </p>
                     </div>
-                  </div>
-                </div>
-                <div className="rounded p-3 flex items-start gap-2" style={{ background: '#DEEBFF', border: '1px solid #4C9AFF' }}>
-                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: '#0052CC' }} />
-                  <p className="text-xs" style={{ color: '#0052CC' }}>
-                    A temporary password will be generated and emailed to the employee. Role is automatically set to <strong>Employee</strong>.
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <button type="submit" disabled={submitting}
-                    className="flex-1 py-2.5 rounded text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
-                    style={{ backgroundColor: 'var(--jira-blue)' }}>
-                    {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-                    {submitting ? 'Creating...' : 'Create Employee Account'}
-                  </button>
-                  <button type="button" onClick={() => setShowAdd(false)}
-                    className="px-4 py-2.5 rounded text-sm border"
-                    style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>Cancel</button>
-                </div>
-              </form>
-            )}
+
+                    <div className="flex gap-4 pt-4">
+                      <button type="submit" disabled={submitting}
+                        className="jira-button jira-button-primary h-12 flex-1 gap-3 font-bold uppercase text-[10px] disabled:opacity-50">
+                        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                        Finalize Recruitment
+                      </button>
+                      <button type="button" onClick={() => setShowAdd(false)} className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Abort</button>
+                    </div>
+                  </form>
+                )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Edit Employee Modal */}
+      {/* Edit Registry Modal */}
       {editTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-md rounded-lg p-6" style={{ background: 'var(--bg-surface)' }}>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Edit Employee</h2>
-              <button onClick={() => setEditTarget(null)}>
-                <X className="h-5 w-5" style={{ color: 'var(--text-muted)' }} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[3px] shadow-2xl w-full max-w-md overflow-hidden border border-[var(--border)] animate-in zoom-in-95 duration-200 flex flex-col">
+            <div className="px-8 py-6 bg-[var(--bg-surface-2)] border-b border-[var(--border)] flex items-center justify-between">
+              <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
+                  <Edit2 className="h-4 w-4 text-[var(--color-primary)]" /> Update Record
+              </h2>
+              <button onClick={() => setEditTarget(null)} className="p-1 px-1.5 hover:bg-white border border-transparent rounded-[3px]">
+                <X className="h-4 w-4 text-slate-400" />
               </button>
             </div>
 
-            <form onSubmit={handleEdit} className="space-y-3">
-              <div>
-                <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Full Name</label>
+            <form onSubmit={handleEdit} className="p-10 space-y-6">
+              <div className="space-y-1.5">
+                <label className={labelClass}>Full Personnel Name</label>
                 <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full border rounded px-3 py-2 text-sm outline-none"
-                  style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
+                  className={cn(inputClass, "uppercase")} />
               </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Phone</label>
+              <div className="space-y-1.5">
+                <label className={labelClass}>Communication Link (Phone)</label>
                 <input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
-                  className="w-full border rounded px-3 py-2 text-sm outline-none"
-                  style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
+                  className={inputClass} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Department</label>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1.5">
+                  <label className={labelClass}>Sector Designation</label>
                   <select value={editForm.department} onChange={e => setEditForm(f => ({ ...f, department: e.target.value }))}
-                    className="w-full border rounded px-3 py-2 text-sm outline-none"
-                    style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
+                    className={cn(inputClass, "appearance-none bg-slate-50")}>
                     {departments.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Designation</label>
+                <div className="space-y-1.5">
+                  <label className={labelClass}>Core Protocol</label>
                   <select value={editForm.designation} onChange={e => setEditForm(f => ({ ...f, designation: e.target.value }))}
-                    className="w-full border rounded px-3 py-2 text-sm outline-none"
-                    style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
+                    className={cn(inputClass, "appearance-none bg-slate-50")}>
                     {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Status</label>
+              <div className="space-y-1.5">
+                <label className={labelClass}>Authorization Status</label>
                 <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
-                  className="w-full border rounded px-3 py-2 text-sm outline-none"
-                  style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
-                  <option value="ACTIVE">Active</option>
-                  <option value="INACTIVE">Inactive</option>
+                  className={cn(inputClass, "appearance-none bg-slate-50")}>
+                  <option value="ACTIVE">ACTIVE_PROTOCOL</option>
+                  <option value="INACTIVE">NEUTRALIZED_PROTOCOL</option>
                 </select>
               </div>
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-4 pt-4 border-t border-slate-50">
                 <button type="submit" disabled={submitting}
-                  className="flex-1 py-2 rounded text-sm font-semibold text-white disabled:opacity-60"
-                  style={{ backgroundColor: 'var(--jira-blue)' }}>
-                  {submitting ? 'Saving...' : 'Save Changes'}
+                  className="jira-button jira-button-primary h-12 flex-1 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">
+                  {submitting ? 'SYNCHRONIZING...' : 'Commit Changes'}
                 </button>
                 <button type="button" onClick={() => setEditTarget(null)}
-                  className="flex-1 py-2 rounded text-sm border"
-                  style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
+                  className="jira-button border border-[var(--border)] h-12 flex-1 font-bold uppercase text-[10px] bg-white text-[var(--text-muted)]">
                   Cancel
                 </button>
               </div>

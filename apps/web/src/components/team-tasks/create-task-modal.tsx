@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Plus, Target, Calendar, Clock, UserPlus, ShieldCheck, Zap, LayoutList, ChevronRight } from 'lucide-react';
 import { teamTasksApi } from '@/lib/team-tasks-api';
+import { cn } from '@/lib/utils';
 
-const inputClass = "w-full px-3 py-2.5 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] focus:border-transparent transition";
+const inputClass = "w-full px-3 py-2.5 bg-white border border-[var(--border)] rounded-[3px] text-sm font-bold text-[var(--text-primary)] placeholder:text-slate-200 outline-none focus:border-[var(--color-primary)] transition-all uppercase tracking-tight";
+const labelClass = "text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-1.5 block pl-1";
 
 export default function CreateTaskModal({ teamId, members, onClose, onCreated }: {
     teamId: string;
@@ -41,96 +43,144 @@ export default function CreateTaskModal({ teamId, members, onClose, onCreated }:
             });
             onCreated(res.data);
             onClose();
-        } catch (e: any) { alert(e.response?.data?.message || 'Failed to create task'); }
-        finally { setLoading(false); }
+        } catch (e: any) { 
+            alert(e.response?.data?.message || 'Uplink failure: Task initialization aborted.'); 
+        } finally { setLoading(false); }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-                <div className="flex items-center justify-between p-5 border-b border-[#F1F5F9]">
-                    <h2 className="text-base font-bold text-[#0F172A]">Create Task</h2>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F1F5F9] transition">
-                        <X className="h-4 w-4 text-[#64748B]" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-[3px] shadow-2xl w-full max-w-2xl overflow-hidden border border-[var(--border)] animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-surface-2)] shrink-0">
+                    <div className="flex items-center gap-2">
+                        <Plus className="h-4 w-4 text-[var(--color-primary)]" />
+                        <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Objective Initialization</h2>
+                    </div>
+                    <button onClick={onClose} className="p-1.5 rounded-[3px] hover:bg-white hover:shadow-sm border border-transparent hover:border-[var(--border)] transition-all">
+                        <X className="h-4 w-4 text-[var(--text-muted)]" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-[#0F172A]">Task Title *</label>
-                        <input className={inputClass} placeholder="Enter task title"
-                            value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required />
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-8">
+                    {/* Mission Intro */}
+                    <div>
+                         <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Configure New Tactical Objective</h3>
+                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Define parameters for mission assignment and execution.</p>
                     </div>
 
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-[#0F172A]">Description</label>
-                        <textarea className={`${inputClass} min-h-[80px] resize-none`} placeholder="Describe the task..."
-                            value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-6">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-[#0F172A]">Priority</label>
-                            <select className={inputClass} value={form.priority}
-                                onChange={e => setForm({ ...form, priority: e.target.value })}>
-                                <option value="LOW">Low</option>
-                                <option value="MEDIUM">Medium</option>
-                                <option value="HIGH">High</option>
-                                <option value="URGENT">Urgent</option>
-                            </select>
+                            <label className={labelClass}>Objective Title *</label>
+                            <input className={inputClass} placeholder="ENTER_TASK_IDENTIFIER"
+                                value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required autoFocus />
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-[#0F172A]">Estimate (hours)</label>
-                            <input type="number" min="0" step="0.5" className={inputClass} placeholder="e.g. 4"
-                                value={form.estimate_hours} onChange={e => setForm({ ...form, estimate_hours: e.target.value })} />
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-[#0F172A]">Start Date</label>
-                            <input type="date" className={inputClass}
-                                value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} />
+                            <label className={labelClass}>Operational Intelligence (Description)</label>
+                            <textarea className={cn(inputClass, "min-h-[120px] resize-none normal-case font-medium leading-relaxed")} 
+                                placeholder="Provide comprehensive details regarding this objective..."
+                                value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-[#0F172A]">Due Date</label>
-                            <input type="date" className={inputClass}
-                                value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })} />
-                        </div>
-                    </div>
 
-                    {/* Assignees */}
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-[#0F172A]">Assign Members</label>
-                        <div className="flex flex-wrap gap-2">
-                            {members.map((m: any) => {
-                                const selected = form.assignee_ids.includes(m.user_id);
-                                return (
-                                    <button key={m.user_id} type="button"
-                                        onClick={() => toggleAssignee(m.user_id)}
-                                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition
-                                            ${selected ? 'border-[#1D4ED8] bg-[#EFF6FF] text-[#1D4ED8]' : 'border-[#E2E8F0] text-[#64748B] hover:border-[#1D4ED8]/40'}`}>
-                                        <div className="w-4 h-4 rounded-full bg-[#1D4ED8]/10 flex items-center justify-center text-[#1D4ED8] text-[9px] font-bold">
-                                            {m.user?.name?.charAt(0)}
-                                        </div>
-                                        {m.user?.name}
-                                    </button>
-                                );
-                            })}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-1.5">
+                                <label className={labelClass}>Priority Protocols</label>
+                                <div className="relative">
+                                    <Zap className={cn(
+                                        "absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4",
+                                        form.priority === 'URGENT' ? "text-red-500" : form.priority === 'HIGH' ? "text-orange-500" : "text-blue-500"
+                                    )} />
+                                    <select className={cn(inputClass, "pl-10 appearance-none")} value={form.priority}
+                                        onChange={e => setForm({ ...form, priority: e.target.value })}>
+                                        <option value="LOW">LOW_PRIORITY</option>
+                                        <option value="MEDIUM">STANDARD_PRIORITY</option>
+                                        <option value="HIGH">HIGH_PRIORITY</option>
+                                        <option value="URGENT">URGENT_RESPONSE</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className={labelClass}>Time Allocation (Hours)</label>
+                                <div className="relative">
+                                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                                    <input type="number" min="0" step="0.5" className={cn(inputClass, "pl-10")} placeholder="e.g. 8.0"
+                                        value={form.estimate_hours} onChange={e => setForm({ ...form, estimate_hours: e.target.value })} />
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="flex gap-3 pt-2">
-                        <button type="button" onClick={onClose}
-                            className="flex-1 py-2.5 border border-[#E2E8F0] rounded-lg text-sm font-medium text-[#64748B] hover:bg-[#F8FAFC] transition">
-                            Cancel
-                        </button>
-                        <button type="submit" disabled={loading}
-                            className="flex-1 py-2.5 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-sm font-semibold rounded-lg transition disabled:opacity-60 flex items-center justify-center gap-2">
-                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create Task'}
-                        </button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-1.5">
+                                <label className={labelClass}>Start Sequence</label>
+                                <div className="relative">
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                                    <input type="date" className={cn(inputClass, "pl-10")}
+                                        value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} />
+                                </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className={labelClass}>Termination Deadline</label>
+                                <div className="relative">
+                                    <Target className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-400" />
+                                    <input type="date" className={cn(inputClass, "pl-10 border-red-100 focus:border-red-500")}
+                                        value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })} />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Assignees */}
+                        <div className="space-y-3">
+                            <label className={labelClass}>Operational Force (Personnel)</label>
+                            <div className="p-4 bg-slate-50 border border-[var(--border)] rounded-[3px] flex flex-wrap gap-2">
+                                {members.length === 0 ? (
+                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic py-2">No active personnel detected in sector.</p>
+                                ) : (
+                                    members.map((m: any) => {
+                                        const selected = form.assignee_ids.includes(m.user_id);
+                                        return (
+                                            <button key={m.user_id} type="button"
+                                                onClick={() => toggleAssignee(m.user_id)}
+                                                className={cn(
+                                                    "flex items-center gap-2 px-3 py-2 rounded-[3px] border text-[10px] font-bold uppercase tracking-tight transition-all",
+                                                    selected 
+                                                        ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-md shadow-blue-100" 
+                                                        : "border-[var(--border)] bg-white text-[var(--text-secondary)] hover:border-blue-300"
+                                                )}>
+                                                <div className={cn(
+                                                    "w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold",
+                                                    selected ? "bg-white/20 text-white" : "bg-blue-50 text-[var(--color-primary)]"
+                                                )}>
+                                                    {m.user?.name?.charAt(0)}
+                                                </div>
+                                                {m.user?.name}
+                                            </button>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </form>
+
+                {/* Footer Actions */}
+                <div className="px-8 py-6 border-t border-[var(--border)] bg-[var(--bg-surface-2)] flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-2">
+                         <ShieldCheck className="h-4 w-4 text-emerald-500 opacity-60" />
+                         <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Awaiting Authorization</span>
+                    </div>
+                    <div className="flex gap-4">
+                        <button type="button" onClick={onClose}
+                            className="h-12 px-8 border border-[var(--border)] bg-white text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest rounded-[3px] hover:bg-slate-50 transition-all">
+                            Abort Sequence
+                        </button>
+                        <button type="submit" onClick={handleSubmit} disabled={loading}
+                            className="h-12 px-10 bg-[var(--color-primary)] text-white text-[10px] font-bold uppercase tracking-widest rounded-[3px] hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-blue-100">
+                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LayoutList className="h-4 w-4" />}
+                            {loading ? 'Transmitting...' : 'Register Objective'}
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );

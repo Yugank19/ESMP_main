@@ -7,9 +7,11 @@ import {
     LayoutDashboard, Briefcase, CheckSquare, Users, MessageSquare,
     Shield, LogOut, ChevronRight, BarChart2, FileText, Calendar,
     Search, Settings, Activity, X, Ticket, GitBranch, Clock,
-    Bug, BookOpen, Megaphone, LayoutGrid, UserCheck, UserCog
+    Bug, BookOpen, Megaphone, LayoutGrid, UserCheck, UserCog,
+    ChevronLeft, Plus
 } from 'lucide-react';
 import { callLogout } from '@/lib/audit-api';
+import { useState, useEffect } from 'react';
 
 const mainNav = [
     { href: '/dashboard',          label: 'Dashboard',   icon: LayoutDashboard, exact: true },
@@ -19,7 +21,6 @@ const mainNav = [
     { href: '/dashboard/chat',     label: 'Chat',        icon: MessageSquare },
 ];
 
-// Employee/company-only nav — hidden from STUDENT role (enforced in each page)
 const enterpriseNav = [
     { href: '/dashboard/my-workspace',   label: 'My Workspace',     icon: LayoutGrid },
     { href: '/dashboard/tickets',        label: 'Service Requests', icon: Ticket },
@@ -54,8 +55,9 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
-    // Read role from localStorage — STUDENT never sees enterprise features
+    // Read role from localStorage
     const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
     const userRole = storedUser ? (JSON.parse(storedUser).roles?.[0] || '').toUpperCase() : '';
     const isStudent = userRole === 'STUDENT';
@@ -75,114 +77,117 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         return (
             <Link
                 href={item.href}
-                onClick={onClose}
                 className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-[15px] font-medium transition-all duration-150 group",
+                    "flex items-center gap-3 px-3 py-2 rounded-[3px] text-[14px] font-medium transition-colors duration-100 group mb-1",
                     active
-                        ? "bg-[#1D4ED8] text-white shadow-sm shadow-blue-900/30"
-                        : "text-slate-400 hover:text-white hover:bg-white/8"
+                        ? "bg-[var(--sidebar-hover)] text-[var(--sidebar-active)]"
+                        : "text-[var(--sidebar-text)] hover:bg-[var(--sidebar-hover)] hover:text-white"
                 )}
             >
-                <item.icon className={cn("h-[18px] w-[18px] shrink-0 transition-transform duration-150", active ? "scale-110" : "group-hover:scale-105")} />
-                <span className="flex-1 truncate">{item.label}</span>
-                {active && <ChevronRight className="h-3.5 w-3.5 opacity-50" />}
+                <item.icon className={cn("h-[16px] w-[16px] shrink-0", active ? "text-[var(--sidebar-active)]" : "group-hover:text-white")} />
+                {!isCollapsed && <span className="flex-1 truncate">{item.label}</span>}
+                {active && !isCollapsed && <div className="w-1.5 h-1.5 rounded-full bg-[var(--sidebar-active)]" />}
             </Link>
         );
     };
 
     const SectionLabel = ({ label }: { label: string }) => (
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-1.5 mt-1">
-            {label}
-        </p>
+        !isCollapsed ? (
+            <p className="text-[11px] font-bold text-white/40 uppercase tracking-tight px-3 mb-2 mt-4">
+                {label}
+            </p>
+        ) : <div className="h-4" />
     );
 
     return (
         <>
-            {/* Backdrop */}
+            {/* Mobile Backdrop */}
             <div
                 onClick={onClose}
                 className={cn(
-                    "fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300",
+                    "fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px] transition-opacity lg:hidden",
                     open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                 )}
             />
 
-            {/* Drawer */}
+            {/* Sidebar Container */}
             <aside
                 className={cn(
-                    "fixed top-0 left-0 z-50 h-screen w-64 flex flex-col",
-                    "transition-transform duration-300 ease-in-out",
-                    open ? "translate-x-0" : "-translate-x-full"
+                    "fixed lg:static top-0 left-0 z-50 h-screen flex flex-col transition-all duration-300 ease-in-out border-r border-white/10",
+                    isCollapsed ? "w-16" : "w-64",
+                    open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
                 )}
                 style={{ backgroundColor: 'var(--sidebar-bg)' }}
             >
-                {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 shrink-0">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[#1D4ED8] flex items-center justify-center shrink-0 shadow-lg shadow-blue-900/40">
-                            <span className="text-white font-bold text-sm">E</span>
-                        </div>
-                        <div>
-                            <p className="text-white font-bold text-[15px] leading-none tracking-tight">ESMP</p>
-                            <p className="text-slate-500 text-[11px] mt-0.5">Management Portal</p>
-                        </div>
+                {/* Brand / Logo */}
+                <div className="flex items-center gap-3 px-4 py-6 mb-2">
+                    <div className="w-8 h-8 rounded-[4px] bg-white flex items-center justify-center shrink-0">
+                        <span className="text-[var(--sidebar-bg)] font-black text-lg">E</span>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-                        aria-label="Close sidebar"
+                    {!isCollapsed && (
+                        <div className="overflow-hidden">
+                            <p className="text-white font-bold text-lg leading-none tracking-tight">ESMP</p>
+                            <p className="text-white/50 text-[10px] mt-1 font-medium uppercase tracking-wider">Enterprise Pro</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Quick Action (Jira Create) */}
+                <div className="px-3 mb-6">
+                    <button 
+                        className={cn(
+                            "w-full h-10 rounded-[3px] bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors group",
+                            isCollapsed ? "px-0" : "px-4 gap-2"
+                        )}
+                        onClick={() => router.push('/dashboard/tasks?action=create')}
                     >
-                        <X className="h-4 w-4" />
+                        <Plus className="h-5 w-5" />
+                        {!isCollapsed && <span className="font-semibold text-sm">Create</span>}
                     </button>
                 </div>
 
-                {/* Nav */}
-                <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
-                    <SectionLabel label="Main" />
+                {/* Scrollable Navigation */}
+                <nav className="flex-1 px-3 overflow-y-auto no-scrollbar pb-10">
+                    <SectionLabel label="General" />
                     {mainNav.map(item => <NavItem key={item.href} item={item} />)}
 
                     {!isStudent && (
-                        <div className="pt-4">
-                            <SectionLabel label="Enterprise" />
+                        <>
+                            <SectionLabel label="Operations" />
                             {enterpriseNav.map(item => <NavItem key={item.href} item={item} />)}
-                        </div>
+                        </>
                     )}
 
-                    <div className="pt-4">
-                        <SectionLabel label="Insights" />
-                        {insightsNav.map(item => <NavItem key={item.href} item={item} />)}
-                    </div>
+                    <SectionLabel label="Analytics" />
+                    {insightsNav.map(item => <NavItem key={item.href} item={item} />)}
 
-                    <div className="pt-4">
-                        <SectionLabel label="System" />
-                        {systemNav
-                          .filter(item => {
-                            // Admin Panel only for ADMIN role
-                            if (item.href === '/dashboard/admin') {
-                              return userRole === 'ADMIN';
-                            }
-                            // Employee Management only for managers/admins
-                            if (item.href === '/dashboard/employee-management') {
-                              return ['MANAGER', 'ADMIN'].includes(userRole);
-                            }
-                            // Client Management only for managers/admins
-                            if (item.href === '/dashboard/client-management') {
-                              return ['MANAGER', 'ADMIN'].includes(userRole);
-                            }
-                            return true;
-                          })
-                          .map(item => <NavItem key={item.href} item={item} />)}
-                    </div>
+                    <SectionLabel label="System" />
+                    {systemNav
+                      .filter(item => {
+                        if (item.href === '/dashboard/admin') return userRole === 'ADMIN';
+                        if (item.href === '/dashboard/employee-management') return ['MANAGER', 'ADMIN'].includes(userRole);
+                        if (item.href === '/dashboard/client-management') return ['MANAGER', 'ADMIN'].includes(userRole);
+                        return true;
+                      })
+                      .map(item => <NavItem key={item.href} item={item} />)}
                 </nav>
 
-                {/* Footer */}
-                <div className="px-3 py-4 border-t border-white/10 shrink-0">
+                {/* Collapse Toggle & Logout */}
+                <div className="mt-auto border-t border-white/10 p-3 space-y-1">
+                    <button
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        className="hidden lg:flex items-center gap-3 px-3 py-2 w-full rounded-[3px] text-[14px] font-medium text-[var(--sidebar-text)] hover:bg-[var(--sidebar-hover)] hover:text-white transition-colors"
+                    >
+                        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                        {!isCollapsed && <span>Collapse sidebar</span>}
+                    </button>
+                    
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-[15px] font-medium text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                        className="flex items-center gap-3 px-3 py-2 w-full rounded-[3px] text-[14px] font-medium text-[var(--sidebar-text)] hover:bg-red-500/20 hover:text-red-400 transition-colors"
                     >
-                        <LogOut className="h-[18px] w-[18px] shrink-0" />
-                        Sign out
+                        <LogOut className="h-4 w-4" />
+                        {!isCollapsed && <span>Sign out</span>}
                     </button>
                 </div>
             </aside>

@@ -1,9 +1,14 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
-import { CheckSquare, Search, Clock, ArrowLeft, ExternalLink, AlertCircle } from "lucide-react";
+import { 
+    CheckSquare, Search, Clock, ArrowLeft, ExternalLink, 
+    AlertCircle, LayoutGrid, List, Filter, Plus, ChevronDown
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import TaskBoard from "@/components/team-tasks/task-board";
+import { cn } from "@/lib/utils";
 
 const priorityColors: Record<string, string> = {
     URGENT: "bg-red-100 text-red-700",
@@ -11,12 +16,15 @@ const priorityColors: Record<string, string> = {
     MEDIUM: "bg-amber-100 text-amber-700",
     LOW: "bg-slate-100 text-slate-600",
 };
+
 const statusColors: Record<string, string> = {
     TODO: "bg-slate-100 text-slate-600",
     IN_PROGRESS: "bg-blue-100 text-blue-700",
     REVIEW: "bg-purple-100 text-purple-700",
     COMPLETED: "bg-green-100 text-green-700",
+    DONE: "bg-green-100 text-green-700",
 };
+
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function TasksPage() {
@@ -25,6 +33,7 @@ export default function TasksPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [filterStatus, setFilterStatus] = useState("");
+    const [view, setView] = useState<"board" | "list">("board");
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -65,124 +74,168 @@ export default function TasksPage() {
         const mst = !filterStatus || t.status === filterStatus;
         return ms && mst;
     });
-    const overdue = filtered.filter(t => t.due_date && new Date(t.due_date) < now && t.status !== "COMPLETED").length;
+    
+    const overdueCount = filtered.filter(t => t.due_date && new Date(t.due_date) < now && t.status !== "COMPLETED" && t.status !== "DONE").length;
 
     return (
-        <div className="space-y-5">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => router.back()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-                        style={{ color: "var(--text-secondary)", background: "var(--bg-surface-2)" }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "var(--bg-surface-3)")}
-                        onMouseLeave={e => (e.currentTarget.style.background = "var(--bg-surface-2)")}>
-                        <ArrowLeft className="h-4 w-4" /> Back
-                    </button>
+        <div className="flex flex-col h-full space-y-6">
+            {/* Header Area */}
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>My Tasks</h1>
-                        <p className="text-sm mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                            All tasks across your teams{overdue > 0 && <span className="ml-2 text-red-500 font-semibold">· {overdue} overdue</span>}
+                        <h1 className="text-2xl font-bold text-[var(--text-primary)]">My Tasks</h1>
+                        <p className="text-sm text-[var(--text-secondary)] mt-1">
+                            Tracking {tasks.length} tasks across {new Set(tasks.map(t => t.team_id)).size} projects
                         </p>
                     </div>
+                    <div className="flex items-center gap-2">
+                         <div className="flex items-center bg-[var(--bg-surface-2)] p-1 rounded-[3px] border border-[var(--border)]">
+                            <button 
+                                onClick={() => setView("board")}
+                                className={cn(
+                                    "flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-[3px] transition-all",
+                                    view === "board" ? "bg-white shadow-sm text-[var(--color-primary)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                                )}
+                            >
+                                <LayoutGrid className="h-4 w-4" /> Board
+                            </button>
+                            <button 
+                                onClick={() => setView("list")}
+                                className={cn(
+                                    "flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-[3px] transition-all",
+                                    view === "list" ? "bg-white shadow-sm text-[var(--color-primary)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                                )}
+                            >
+                                <List className="h-4 w-4" /> List
+                            </button>
+                        </div>
+                        <button className="jira-button jira-button-primary gap-2">
+                             <Plus className="h-4 w-4" /> Create
+                        </button>
+                    </div>
                 </div>
-                <Link href="/dashboard/teams" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-                    style={{ background: "linear-gradient(135deg,#2563eb,#7c3aed)", boxShadow: "0 2px 8px rgba(37,99,235,0.25)" }}>
-                    <ExternalLink className="h-4 w-4" /> Manage in Teams
-                </Link>
+
+                {/* Filters Row */}
+                <div className="flex items-center gap-4 flex-wrap pb-2">
+                    <div className="relative min-w-[240px]">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                        <input 
+                            placeholder="Search tasks..." 
+                            value={search} 
+                            onChange={e => setSearch(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border)] rounded-[3px] text-sm focus:border-[var(--color-primary)] transition-all outline-none"
+                        />
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <select 
+                            value={filterStatus} 
+                            onChange={e => setFilterStatus(e.target.value)}
+                            className="bg-white border border-[var(--border)] rounded-[3px] px-3 py-2 text-sm text-[var(--text-secondary)] font-medium outline-none hover:bg-[var(--bg-surface-2)] transition-colors"
+                        >
+                            <option value="">Status: All</option>
+                            {["TODO","IN_PROGRESS","REVIEW","DONE"].map(s => <option key={s} value={s}>{s.replace("_"," ")}</option>)}
+                        </select>
+                        
+                        {overdueCount > 0 && (
+                            <span className="flex items-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 text-xs font-bold rounded-[3px] border border-red-100">
+                                <AlertCircle className="h-3.5 w-3.5" /> {overdueCount} Overdue
+                            </span>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {error && (
-                <div className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm text-red-600 bg-red-50 border border-red-200">
-                    <AlertCircle className="h-4 w-4 shrink-0" />{error}
-                    <button onClick={loadTasks} className="ml-auto text-xs font-semibold underline">Retry</button>
+                <div className="flex items-center gap-2 px-4 py-3 rounded-[3px] text-sm text-red-600 bg-red-50 border border-red-100">
+                    <AlertCircle className="h-4 w-4 shrink-0" /> {error}
+                    <button onClick={loadTasks} className="ml-auto text-xs font-bold underline">Retry</button>
                 </div>
             )}
 
-            <div className="flex gap-3 flex-wrap">
-                <div className="relative flex-1 min-w-48">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4" style={{ color: "var(--text-muted)" }} />
-                    <input placeholder="Search tasks..." value={search} onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 rounded-lg border text-sm outline-none"
-                        style={{ borderColor: "var(--border)", background: "var(--bg-surface)", color: "var(--text-primary)" }}
-                        onFocus={e => (e.currentTarget.style.borderColor = "var(--primary)")}
-                        onBlur={e => (e.currentTarget.style.borderColor = "var(--border)")} />
-                </div>
-                <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                    className="border rounded-lg px-3 py-2 text-sm outline-none"
-                    style={{ borderColor: "var(--border)", background: "var(--bg-surface)", color: "var(--text-primary)" }}>
-                    <option value="">All Statuses</option>
-                    {["TODO","IN_PROGRESS","REVIEW","COMPLETED"].map(s => <option key={s} value={s}>{s.replace("_"," ")}</option>)}
-                </select>
+            {/* Content Area */}
+            <div className="flex-1 min-h-0">
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <div className="h-8 w-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="card p-20 text-center flex flex-col items-center">
+                        <CheckSquare className="h-12 w-12 text-[var(--border)] mb-4" />
+                        <h3 className="text-lg font-bold text-[var(--text-primary)]">All clear!</h3>
+                        <p className="text-[var(--text-secondary)] mt-1 max-w-xs">
+                            {tasks.length === 0 ? "You don't have any tasks assigned yet." : "No tasks match your current filters."}
+                        </p>
+                    </div>
+                ) : view === "board" ? (
+                    <TaskBoard 
+                        tasks={filtered} 
+                        onTaskClick={(t) => router.push(`/dashboard/teams/${t.team_id}`)}
+                        isLeader={false}
+                        onStatusChange={() => {}}
+                    />
+                ) : (
+                    <div className="card overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-[var(--border)] bg-[var(--bg-surface-2)]">
+                                        <th className="text-left px-5 py-3 text-[11px] font-bold uppercase text-[var(--text-muted)] tracking-wider">Type</th>
+                                        <th className="text-left px-5 py-3 text-[11px] font-bold uppercase text-[var(--text-muted)] tracking-wider">Summary</th>
+                                        <th className="text-left px-5 py-3 text-[11px] font-bold uppercase text-[var(--text-muted)] tracking-wider">Project</th>
+                                        <th className="text-left px-5 py-3 text-[11px] font-bold uppercase text-[var(--text-muted)] tracking-wider">Status</th>
+                                        <th className="text-left px-5 py-3 text-[11px] font-bold uppercase text-[var(--text-muted)] tracking-wider">Priority</th>
+                                        <th className="text-left px-5 py-3 text-[11px] font-bold uppercase text-[var(--text-muted)] tracking-wider">Due</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filtered.map(task => {
+                                        const isOverdue = task.due_date && new Date(task.due_date) < now && task.status !== "COMPLETED" && task.status !== "DONE";
+                                        return (
+                                            <tr key={task.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-surface-2)] cursor-pointer transition-colors"
+                                                onClick={() => router.push(`/dashboard/teams/${task.team_id}`)}>
+                                                <td className="px-5 py-3.5 italic text-[var(--text-muted)]">Task</td>
+                                                <td className="px-5 py-3.5">
+                                                    <p className="font-bold text-[var(--text-primary)]">{task.title}</p>
+                                                    {task.description && <p className="text-xs text-[var(--text-secondary)] truncate max-w-md mt-0.5">{task.description}</p>}
+                                                </td>
+                                                <td className="px-5 py-3.5">
+                                                    <span className="text-xs font-bold text-[var(--color-primary)]">{task.team_name}</span>
+                                                </td>
+                                                <td className="px-5 py-3.5">
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase",
+                                                        statusColors[task.status] || statusColors.TODO
+                                                    )}>
+                                                        {task.status?.replace("_"," ") || "TODO"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-3.5">
+                                                    <span className={cn(
+                                                        "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase",
+                                                        priorityColors[task.priority] || priorityColors.LOW
+                                                    )}>
+                                                        {task.priority || "LOW"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-3.5">
+                                                    <div className={cn(
+                                                        "flex items-center gap-1.5 text-xs",
+                                                        isOverdue ? "text-red-500 font-bold" : "text-[var(--text-secondary)]"
+                                                    )}>
+                                                        <Clock className="h-3.5 w-3.5" />
+                                                        {task.due_date ? new Date(task.due_date).toLocaleDateString() : "\u2014"}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
             </div>
-
-            <div className="rounded-xl overflow-hidden border" style={{ background: "var(--bg-surface)", borderColor: "var(--border)" }}>
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--bg-surface-2)" }}>
-                            {["Task","Team","Priority","Status","Assignees","Due Date"].map(h => (
-                                <th key={h} className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{h}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? [1,2,3,4].map(i => (
-                            <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
-                                <td colSpan={6} className="px-5 py-4"><div className="skeleton h-4 rounded" /></td>
-                            </tr>
-                        )) : filtered.length === 0 ? (
-                            <tr><td colSpan={6} className="px-5 py-16 text-center">
-                                <CheckSquare className="h-10 w-10 mx-auto mb-3" style={{ color: "var(--text-muted)" }} />
-                                <p className="font-medium" style={{ color: "var(--text-primary)" }}>{tasks.length === 0 ? "No tasks yet" : "No tasks match filters"}</p>
-                                <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{tasks.length === 0 ? "Join a team to see tasks assigned to you." : "Try adjusting your search."}</p>
-                                {tasks.length === 0 && <Link href="/dashboard/teams" className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold" style={{ color: "var(--primary)" }}>Browse Teams <ExternalLink className="h-3.5 w-3.5" /></Link>}
-                            </td></tr>
-                        ) : filtered.map(task => {
-                            const isOverdue = task.due_date && new Date(task.due_date) < now && task.status !== "COMPLETED";
-                            return (
-                                <tr key={task.id} className="cursor-pointer transition-colors" style={{ borderBottom: "1px solid var(--border)" }}
-                                    onClick={() => router.push(`/dashboard/teams/${task.team_id}`)}
-                                    onMouseEnter={e => (e.currentTarget.style.background = "var(--bg-surface-2)")}
-                                    onMouseLeave={e => (e.currentTarget.style.background = "")}>
-                                    <td className="px-5 py-3.5">
-                                        <p className="font-medium" style={{ color: "var(--text-primary)" }}>{task.title}</p>
-                                        {task.description && <p className="text-xs mt-0.5 truncate max-w-xs" style={{ color: "var(--text-muted)" }}>{task.description}</p>}
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{task.team_name}</span>
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${priorityColors[task.priority] || priorityColors.LOW}`}>{task.priority || "LOW"}</span>
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[task.status] || statusColors.TODO}`}>{task.status?.replace("_"," ") || "TODO"}</span>
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        <div className="flex -space-x-1">
-                                            {(task.assignees || []).slice(0,3).map((a: any) => (
-                                                <div key={a.user?.id || a.id} title={a.user?.name} className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white text-[9px] font-bold" style={{ background: "#2563eb" }}>
-                                                    {a.user?.name?.[0] || "?"}
-                                                </div>
-                                            ))}
-                                            {(task.assignees || []).length === 0 && <span className="text-xs" style={{ color: "var(--text-muted)" }}>Unassigned</span>}
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        <div className={`flex items-center gap-1.5 text-xs ${isOverdue ? "text-red-500 font-semibold" : ""}`} style={{ color: isOverdue ? undefined : "var(--text-muted)" }}>
-                                            <Clock className="h-3.5 w-3.5" />
-                                            {task.due_date ? new Date(task.due_date).toLocaleDateString() : "—"}
-                                            {isOverdue && " (Overdue)"}
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-            {!loading && filtered.length > 0 && (
-                <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
-                    {filtered.length} of {tasks.length} tasks · Click any row to open in team workspace
-                </p>
-            )}
         </div>
     );
 }

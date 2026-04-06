@@ -1,11 +1,16 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Plus, ArrowRight, Lock, Globe, Crown, LogIn } from 'lucide-react';
+import { 
+    Users, Plus, ArrowRight, Lock, Globe, Crown, LogIn, 
+    MoreHorizontal, LayoutGrid, Search, Settings, 
+    ShieldCheck, UserPlus, ExternalLink
+} from 'lucide-react';
 import { teamsApi } from '@/lib/teams-api';
 import CreateTeamModal from '@/components/teams/create-team-modal';
 import JoinTeamModal from '@/components/teams/join-team-modal';
+import { cn } from '@/lib/utils';
 
 export default function TeamsPage() {
     const router = useRouter();
@@ -14,6 +19,7 @@ export default function TeamsPage() {
     const [showCreate, setShowCreate] = useState(false);
     const [showJoin, setShowJoin] = useState(false);
     const [user, setUser] = useState<any>(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     const load = async () => {
         setLoading(true);
@@ -37,83 +43,133 @@ export default function TeamsPage() {
         return team.members?.find((m: any) => m.user_id === u.id)?.role || 'MEMBER';
     };
 
+    const filteredTeams = teams.filter(t => 
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (t.description || "").toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     return (
-        <div className="space-y-5 ">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-xl font-bold text-[#0F172A]">Teams</h1>
-                    <p className="text-sm text-[#64748B] mt-0.5">Manage your teams and workspaces</p>
+        <div className="flex flex-col space-y-8 pb-10">
+            {/* Header Section */}
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Teams & Workspaces</h1>
+                        <p className="text-sm text-[var(--text-secondary)] mt-1">
+                            Collaborate across projects and manage your team resources
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button 
+                            onClick={() => setShowJoin(true)}
+                            className="jira-button border border-[var(--border)] bg-white text-[var(--text-secondary)] gap-2 font-bold uppercase text-[10px]"
+                        >
+                            <UserPlus className="h-4 w-4" /> Join Team
+                        </button>
+                        <button 
+                            onClick={() => setShowCreate(true)}
+                            className="jira-button jira-button-primary gap-2 font-bold uppercase text-[10px]"
+                        >
+                            <Plus className="h-4 w-4" /> Create Team
+                        </button>
+                    </div>
                 </div>
-                <div className="flex gap-2">
-                    <button onClick={() => setShowJoin(true)}
-                        className="flex items-center gap-2 px-4 py-2 border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[#0F172A] text-sm font-semibold rounded-lg transition">
-                        <LogIn className="h-4 w-4" /> Join Team
-                    </button>
-                    <button onClick={() => setShowCreate(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-sm font-semibold rounded-lg transition">
-                        <Plus className="h-4 w-4" /> New Team
-                    </button>
+
+                {/* Filters Row */}
+                <div className="flex items-center gap-4 border-b border-[var(--border)] pb-4">
+                    <div className="relative min-w-[320px]">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                        <input 
+                            placeholder="Filter teams..." 
+                            value={searchQuery} 
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border)] rounded-[3px] text-sm focus:border-[var(--color-primary)] transition-all outline-none font-medium"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-[var(--color-primary)] bg-[var(--bg-surface-2)] rounded-[3px]">
+                           <LayoutGrid className="h-4 w-4" /> All Teams
+                        </button>
+                        <button className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+                           <Crown className="h-4 w-4" /> Managed by me
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Teams grid */}
+            {/* Teams Content */}
             {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[1, 2, 3].map(i => <div key={i} className="h-44 bg-[#F1F5F9] rounded-xl animate-pulse" />)}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3, 4, 5, 6].map(i => (
+                        <div key={i} className="card h-52 animate-pulse bg-slate-50" />
+                    ))}
                 </div>
-            ) : teams.length === 0 ? (
-                <div className="bg-white rounded-xl border border-[#E2E8F0] p-16 text-center">
-                    <div className="w-12 h-12 rounded-xl bg-[#EFF6FF] flex items-center justify-center mx-auto mb-4">
-                        <Users className="h-6 w-6 text-[#1D4ED8]" />
+            ) : filteredTeams.length === 0 ? (
+                <div className="card p-24 text-center flex flex-col items-center">
+                    <div className="w-16 h-16 rounded-[3px] bg-blue-50 flex items-center justify-center mb-6">
+                        <Users className="h-8 w-8 text-[var(--color-primary)]" />
                     </div>
-                    <p className="text-sm font-semibold text-[#0F172A]">No teams yet</p>
-                    <p className="text-xs text-[#64748B] mt-1 mb-4">Create a team or join one with an invite code.</p>
-                    <button onClick={() => setShowCreate(true)}
-                        className="px-4 py-2 bg-[#1D4ED8] text-white text-sm font-semibold rounded-lg hover:bg-[#1E40AF] transition">
-                        Create your first team
-                    </button>
+                    <h3 className="text-xl font-bold text-[var(--text-primary)]">Ready to collaborate?</h3>
+                    <p className="text-[var(--text-secondary)] mt-2 max-w-sm">
+                        {searchQuery ? "No teams found matching your filter." : "You're not part of any teams yet. Create a team to start managing tasks and files."}
+                    </p>
+                    <div className="flex gap-4 mt-8">
+                        <button onClick={() => setShowCreate(true)} className="jira-button jira-button-primary">Create Team</button>
+                        <button onClick={() => setShowJoin(true)} className="jira-button bg-white border border-[var(--border)] text-[var(--text-secondary)]">Join with Code</button>
+                    </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {teams.map(team => {
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredTeams.map(team => {
                         const myRole = getMyRole(team);
                         const isLeader = myRole === 'LEADER';
                         return (
                             <div key={team.id}
-                                className="bg-white rounded-xl border border-[#E2E8F0] p-5 hover:shadow-md hover:border-[#1D4ED8]/30 transition-all group cursor-pointer"
+                                className="card group hover:border-[var(--color-primary)] transition-all cursor-pointer flex flex-col pt-6"
                                 onClick={() => router.push(`/dashboard/teams/${team.id}`)}>
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="w-10 h-10 rounded-xl bg-[#EFF6FF] flex items-center justify-center text-[#1D4ED8] font-bold text-sm shrink-0">
+                                
+                                <div className="px-6 flex items-start justify-between mb-4">
+                                    <div className="w-12 h-12 rounded-[3px] bg-gradient-to-br from-[var(--color-primary)] to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-sm group-hover:scale-105 transition-transform">
                                         {team.name.charAt(0).toUpperCase()}
                                     </div>
-                                    <div className="flex items-center gap-1.5">
+                                    <div className="flex flex-col items-end gap-1.5">
                                         {isLeader && (
-                                            <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                                                <Crown className="h-3 w-3" /> Leader
+                                            <span className="flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-[3px] bg-amber-50 text-amber-700 border border-amber-100 uppercase tracking-tighter">
+                                                <Crown className="h-3 w-3" /> Team Leader
                                             </span>
                                         )}
-                                        <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${team.visibility === 'PUBLIC' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}>
+                                        <span className={cn(
+                                            "flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-[3px] uppercase tracking-tighter border",
+                                            team.visibility === 'PUBLIC' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-600 border-slate-200'
+                                        )}>
                                             {team.visibility === 'PUBLIC' ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                                             {team.visibility}
                                         </span>
                                     </div>
                                 </div>
 
-                                <h3 className="text-sm font-semibold text-[#0F172A] group-hover:text-[#1D4ED8] transition-colors mb-1">
-                                    {team.name}
-                                </h3>
-                                <p className="text-xs text-[#64748B] line-clamp-2 mb-4 min-h-[2rem]">
-                                    {team.description || team.purpose || 'No description provided.'}
-                                </p>
+                                <div className="px-6 flex-1">
+                                    <h3 className="text-base font-bold text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
+                                        {team.name}
+                                    </h3>
+                                    <p className="text-xs text-[var(--text-secondary)] line-clamp-2 mt-2 leading-relaxed min-h-[32px]">
+                                        {team.description || team.purpose || 'Dynamic enterprise workspace for agile collaboration.'}
+                                    </p>
+                                </div>
 
-                                <div className="flex items-center justify-between pt-3 border-t border-[#F1F5F9]">
-                                    <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">
-                                        <Users className="h-3.5 w-3.5" />
-                                        <span>{team._count?.members || team.members?.length || 0} members</span>
+                                <div className="mt-6 px-6 py-4 flex items-center justify-between bg-slate-50 border-t border-[var(--border)] group-hover:bg-white transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight">
+                                            <Users className="h-3.5 w-3.5" />
+                                            <span>{team._count?.members || team.members?.length || 0} Members</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight">
+                                            <ShieldCheck className="h-3.5 w-3.5" />
+                                            <span>Active</span>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-1 text-xs text-[#1D4ED8] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                        Open workspace <ArrowRight className="h-3.5 w-3.5" />
+                                    <div className="h-8 w-8 rounded-[3px] flex items-center justify-center text-[var(--text-muted)] group-hover:text-[var(--color-primary)] group-hover:bg-blue-50 transition-all">
+                                        <ExternalLink className="h-4 w-4" />
                                     </div>
                                 </div>
                             </div>

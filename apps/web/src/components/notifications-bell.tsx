@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, Users, Check, X, CheckCheck } from 'lucide-react';
 import { notificationsApi } from '@/lib/notifications-api';
+import { cn } from '@/lib/utils';
 
 export default function NotificationsBell() {
     const router = useRouter();
@@ -89,48 +90,46 @@ export default function NotificationsBell() {
         <div className="relative" ref={ref}>
             <button
                 onClick={() => setOpen(o => !o)}
-                className="relative p-2 rounded-lg hover:bg-[#F1F5F9] transition-colors"
+                className="relative p-1.5 rounded hover:bg-[var(--bg-surface-2)] transition-colors text-[var(--text-secondary)]"
             >
-                <Bell className="h-4 w-4 text-[#64748B]" />
+                <Bell className="h-5 w-5" />
                 {unread > 0 && (
-                    <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#1D4ED8] text-white text-[9px] font-bold flex items-center justify-center">
-                        {unread > 9 ? '9+' : unread}
-                    </span>
+                    <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
                 )}
             </button>
 
             {open && (
-                <div className="absolute right-0 top-10 w-96 bg-white rounded-xl border border-[#E2E8F0] shadow-2xl shadow-slate-200/60 z-50 overflow-hidden">
+                <div className="absolute right-0 top-10 w-96 bg-[var(--bg-surface)] rounded-[3px] border border-[var(--border)] shadow-2xl z-50 overflow-hidden">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-[#F1F5F9]">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)]">
                         <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-semibold text-[#0F172A]">Notifications</h3>
+                            <h3 className="text-sm font-bold text-[var(--text-primary)]">Notifications</h3>
                             {unread > 0 && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#EFF6FF] text-[#1D4ED8]">
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-primary-light)] text-[var(--color-primary)]">
                                     {unread} new
                                 </span>
                             )}
                         </div>
                         {unread > 0 && (
                             <button onClick={handleMarkAllRead}
-                                className="flex items-center gap-1 text-xs text-[#64748B] hover:text-[#1D4ED8] transition-colors">
-                                <CheckCheck className="h-3.5 w-3.5" /> Mark all read
+                                className="flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors font-medium">
+                                <CheckCheck className="h-4 w-4" /> Mark all read
                             </button>
                         )}
                     </div>
 
                     {/* List */}
-                    <div className="max-h-[420px] overflow-y-auto">
+                    <div className="max-h-[420px] overflow-y-auto no-scrollbar">
                         {notifications.length === 0 ? (
                             <div className="py-12 text-center">
-                                <Bell className="h-8 w-8 text-[#E2E8F0] mx-auto mb-2" />
-                                <p className="text-sm text-[#94A3B8]">No notifications yet</p>
+                                <Bell className="h-8 w-8 text-[var(--border)] mx-auto mb-2" />
+                                <p className="text-sm text-[var(--text-muted)]">No notifications yet</p>
                             </div>
                         ) : (
                             <>
                                 {unreadNotifs.length > 0 && (
                                     <div>
-                                        <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider px-4 py-2 bg-[#F8FAFC]">New</p>
+                                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight px-4 py-2 bg-[var(--bg-base)]">New</p>
                                         {unreadNotifs.map(n => (
                                             <NotifItem
                                                 key={n.id}
@@ -144,7 +143,7 @@ export default function NotificationsBell() {
                                 )}
                                 {readNotifs.length > 0 && (
                                     <div>
-                                        <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-wider px-4 py-2 bg-[#F8FAFC]">Earlier</p>
+                                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tight px-4 py-2 bg-[var(--bg-base)]">Earlier</p>
                                         {readNotifs.slice(0, 10).map(n => (
                                             <NotifItem
                                                 key={n.id}
@@ -173,54 +172,58 @@ function NotifItem({ notif, onAccept, onDecline, actionLoading }: any) {
     const inviteHandled = isAccepted || isDeclined;
 
     return (
-        <div className={`px-4 py-3 border-b border-[#F8FAFC] last:border-0 ${!notif.read ? 'bg-[#EFF6FF]/30' : ''}`}>
+        <div className={cn(
+            "px-4 py-3 border-b border-[var(--border)] last:border-0 transition-colors",
+            !notif.read ? "bg-[var(--color-primary-light)]/20" : "hover:bg-[var(--bg-surface-2)]"
+        )}>
             <div className="flex items-start gap-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${isTeamInvite ? 'bg-blue-100' : 'bg-slate-100'}`}>
-                    <Users className={`h-4 w-4 ${isTeamInvite ? 'text-[#1D4ED8]' : 'text-[#64748B]'}`} />
+                <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                    isTeamInvite ? "bg-blue-100 text-[var(--color-primary)]" : "bg-slate-100 text-[var(--text-secondary)]"
+                )}>
+                    <Users className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#0F172A] leading-snug">
+                    <p className="text-sm text-[var(--text-primary)] leading-snug font-medium">
                         {payload.message || 'New notification'}
                     </p>
-                    <p className="text-xs text-[#94A3B8] mt-0.5">
+                    <p className="text-[11px] text-[var(--text-muted)] mt-1">
                         {new Date(notif.created_at).toLocaleString()}
                     </p>
 
                     {/* Accept / Decline buttons for pending team invites */}
                     {isTeamInvite && !notif.read && !inviteHandled && (
-                        <div className="flex gap-2 mt-2">
+                        <div className="flex gap-2 mt-3">
                             <button
                                 onClick={() => onAccept(notif)}
                                 disabled={!!actionLoading}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-xs font-semibold rounded-lg transition disabled:opacity-50"
+                                className="jira-button jira-button-primary text-xs"
                             >
-                                <Check className="h-3 w-3" />
                                 {actionLoading === notif.id + 'accept' ? 'Joining...' : 'Accept'}
                             </button>
                             <button
                                 onClick={() => onDecline(notif)}
                                 disabled={!!actionLoading}
-                                className="flex items-center gap-1 px-3 py-1.5 border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-[#64748B] text-xs font-semibold rounded-lg transition disabled:opacity-50"
+                                className="jira-button border border-[var(--border)] bg-white text-[var(--text-secondary)] hover:bg-[var(--bg-surface-2)] text-xs"
                             >
-                                <X className="h-3 w-3" />
                                 {actionLoading === notif.id + 'decline' ? 'Declining...' : 'Decline'}
                             </button>
                         </div>
                     )}
 
                     {isTeamInvite && isAccepted && (
-                        <p className="text-xs text-green-600 font-medium mt-1.5 flex items-center gap-1">
+                        <p className="text-xs text-green-600 font-semibold mt-2 flex items-center gap-1">
                             <Check className="h-3 w-3" /> Joined team
                         </p>
                     )}
                     {isTeamInvite && isDeclined && (
-                        <p className="text-xs text-[#94A3B8] mt-1.5 flex items-center gap-1">
+                        <p className="text-xs text-[var(--text-muted)] mt-2 flex items-center gap-1">
                             <X className="h-3 w-3" /> Declined
                         </p>
                     )}
                 </div>
                 {!notif.read && (
-                    <div className="w-2 h-2 rounded-full bg-[#1D4ED8] shrink-0 mt-1.5" />
+                    <div className="w-2 h-2 rounded-full bg-[var(--color-primary)] shrink-0 mt-2" />
                 )}
             </div>
         </div>

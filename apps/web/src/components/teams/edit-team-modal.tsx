@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Settings, Shield, Globe, Lock, Save, Ban } from 'lucide-react';
 import { teamsApi } from '@/lib/teams-api';
+import { cn } from '@/lib/utils';
 
 export default function EditTeamModal({
     team, onClose, onUpdated,
@@ -25,60 +26,88 @@ export default function EditTeamModal({
             const res = await teamsApi.updateTeam(team.id, form);
             onUpdated(res.data);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to update team.');
+            setError(err.response?.data?.message || 'Configuration failure: Could not update team data.');
         } finally { setLoading(false); }
     };
 
-    const inputClass = "w-full px-3 py-2.5 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] focus:border-transparent transition";
+    const inputClass = "w-full px-3 py-2.5 bg-white border border-[var(--border)] rounded-[3px] text-sm font-bold text-[var(--text-primary)] placeholder:text-slate-200 outline-none focus:border-[var(--color-primary)] transition-all uppercase tracking-tight";
+    const labelClass = "text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] mb-1.5 block pl-1";
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-[#E2E8F0]">
-                    <h2 className="text-base font-bold text-[#0F172A]">Edit Team</h2>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F1F5F9] transition-colors">
-                        <X className="h-4 w-4 text-[#64748B]" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden border border-[var(--border)] animate-in zoom-in-95 duration-200">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-surface-2)]">
+                    <div className="flex items-center gap-2">
+                        <Settings className="h-4 w-4 text-[var(--color-primary)]" />
+                        <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Mission Configuration</h2>
+                    </div>
+                    <button onClick={onClose} className="p-1.5 rounded-[3px] hover:bg-white hover:shadow-sm border border-transparent hover:border-[var(--border)] transition-all">
+                        <X className="h-4 w-4 text-[var(--text-muted)]" />
                     </button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    {error && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-lg text-sm">{error}</div>}
 
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-[#0F172A]">Team Name *</label>
-                        <input className={inputClass} required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                    {/* Intro */}
+                    <div>
+                         <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Modify Tactical Framework</h3>
+                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Adjust core team parameters and visibility protocols.</p>
                     </div>
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-[#0F172A]">Description</label>
-                        <textarea rows={2} className="w-full px-3 py-2.5 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] focus:border-transparent transition resize-none"
-                            value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-[#0F172A]">Project Name</label>
-                            <input className={inputClass} value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} />
+
+                    {error && (
+                        <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-[3px] text-[10px] font-bold uppercase tracking-tight flex items-center gap-2">
+                            <Ban className="h-4 w-4" /> {error}
                         </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label className={labelClass}>Team Designation *</label>
+                            <input className={inputClass} required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                        </div>
+                        
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label className={labelClass}>Operational Brief (Description)</label>
+                            <textarea rows={2} className={cn(inputClass, "resize-none normal-case font-medium")}
+                                value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+                        </div>
+
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-[#0F172A]">Visibility</label>
-                            <select className={inputClass} value={form.visibility} onChange={e => setForm({ ...form, visibility: e.target.value })}>
-                                <option value="PRIVATE">Private</option>
-                                <option value="PUBLIC">Public</option>
-                            </select>
+                            <label className={labelClass}>Project Identifier</label>
+                            <div className="relative">
+                                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-300" />
+                                <input className={cn(inputClass, "pl-10")} value={form.project_name} onChange={e => setForm({ ...form, project_name: e.target.value })} />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className={labelClass}>Security Protocol (Visibility)</label>
+                            <div className="relative">
+                                {form.visibility === 'PRIVATE' ? <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" /> : <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--color-primary)]" />}
+                                <select className={cn(inputClass, "pl-10 appearance-none")} value={form.visibility} onChange={e => setForm({ ...form, visibility: e.target.value })}>
+                                    <option value="PRIVATE">RESTRICTED (PRIVATE)</option>
+                                    <option value="PUBLIC">UNRESTRICTED (PUBLIC)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label className={labelClass}>Mission Purpose</label>
+                            <textarea rows={2} className={cn(inputClass, "resize-none normal-case font-medium")}
+                                value={form.purpose} onChange={e => setForm({ ...form, purpose: e.target.value })} />
                         </div>
                     </div>
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-[#0F172A]">Purpose</label>
-                        <textarea rows={2} className="w-full px-3 py-2.5 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] focus:border-transparent transition resize-none"
-                            value={form.purpose} onChange={e => setForm({ ...form, purpose: e.target.value })} />
-                    </div>
-                    <div className="flex gap-3 pt-2">
+
+                    {/* Actions */}
+                    <div className="flex gap-4 pt-6 border-t border-[var(--border)]">
                         <button type="button" onClick={onClose}
-                            className="flex-1 py-2.5 border border-[#E2E8F0] text-sm font-medium text-[#64748B] rounded-lg hover:bg-[#F8FAFC] transition">
-                            Cancel
+                            className="flex-1 h-12 border border-[var(--border)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest rounded-[3px] hover:bg-slate-50 transition-all">
+                            Abort Configuration
                         </button>
                         <button type="submit" disabled={loading}
-                            className="flex-1 py-2.5 bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-sm font-semibold rounded-lg transition disabled:opacity-60 flex items-center justify-center gap-2">
-                            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                            {loading ? 'Saving...' : 'Save Changes'}
+                            className="flex-1 h-12 bg-[var(--color-primary)] text-white text-[10px] font-bold uppercase tracking-widest rounded-[3px] hover:bg-blue-700 transition-all disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg shadow-blue-100">
+                            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                            {loading ? 'Transmitting...' : 'Apply Modifications'}
                         </button>
                     </div>
                 </form>

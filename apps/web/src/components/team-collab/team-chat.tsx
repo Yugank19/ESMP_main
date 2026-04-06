@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Send, Pin, Search, Trash2, Edit2, X, Check, Paperclip, Hash } from 'lucide-react';
+import { 
+    Send, Pin, Search, Trash2, Edit2, X, Check, Paperclip, 
+    Hash, MoreHorizontal, Smile, Plus, Download, Clock,
+    ShieldCheck, MessageSquare, CornerDownRight, User
+} from 'lucide-react';
 import { teamChatApi } from '@/lib/team-chat-api';
 import { io, Socket } from 'socket.io-client';
+import { cn } from '@/lib/utils';
 
 interface Message {
     id: string;
@@ -95,14 +100,14 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
         scrollToBottom();
     }, [messages, scrollToBottom]);
 
-    // WebSocket connection — only for receiving real-time events
+    // WebSocket connection
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) return;
 
         const socket = io(`${API_URL}/team-chat`, {
             auth: { token },
-            transports: ['websocket', 'polling'], // fallback to polling if ws fails
+            transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
@@ -118,33 +123,24 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
             setConnected(false);
         });
 
-        socket.on('connect_error', () => {
-            setConnected(false);
-        });
-
-        // New message from any user (including self via broadcast)
         socket.on('new_message', (msg: Message) => {
             setMessages(prev => {
-                // Deduplicate by id
                 if (prev.some(m => m.id === msg.id)) return prev;
                 return [...prev, msg];
             });
         });
 
-        // Message edited
         socket.on('message_updated', (updated: Message) => {
             setMessages(prev => prev.map(m => m.id === updated.id ? { ...m, ...updated } : m));
             setPinnedMessages(prev => prev.map(m => m.id === updated.id ? { ...m, ...updated } : m));
         });
 
-        // Message deleted
         socket.on('message_deleted', ({ id }: { id: string }) => {
             setMessages(prev =>
                 prev.map(m => m.id === id ? { ...m, deleted_at: new Date().toISOString() } : m)
             );
         });
 
-        // Typing indicators
         socket.on('user_typing', ({ userId }: { userId: string }) => {
             if (userId !== currentUser?.id) {
                 setTypingUsers(prev => new Set([...prev, userId]));
@@ -159,7 +155,6 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
             });
         });
 
-        // Online status
         socket.on('user_online', ({ userId }: { userId: string }) => {
             setOnlineUsers(prev => new Set([...prev, userId]));
         });
@@ -192,11 +187,7 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
         if (textareaRef.current) textareaRef.current.style.height = '40px';
         stopTyping();
         try {
-            // HTTP send → controller saves to DB → broadcasts via socket to all members
             const res = await teamChatApi.sendMessage(teamId, { body });
-            // Optimistically add the message for the sender immediately.
-            // The socket 'new_message' broadcast will also arrive — deduplication
-            // by id in the socket handler prevents duplicates.
             setMessages(prev => {
                 if (prev.some(m => m.id === res.data.id)) return prev;
                 return [...prev, res.data];
@@ -217,11 +208,9 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
 
     const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInput(e.target.value);
-        // Auto-resize
         const t = e.target;
         t.style.height = 'auto';
         t.style.height = Math.min(t.scrollHeight, 128) + 'px';
-        // Typing indicator
         socketRef.current?.emit('typing_start', { teamId });
         if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
         typingTimerRef.current = setTimeout(stopTyping, 2000);
@@ -232,11 +221,8 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
         setEditingId(null);
         try {
             const res = await teamChatApi.editMessage(teamId, msg.id, editBody);
-            // Optimistically update; socket 'message_updated' will also arrive (deduped)
             setMessages(prev => prev.map(m => m.id === res.data.id ? { ...m, ...res.data } : m));
-        } catch {
-            // ignore
-        }
+        } catch { }
     };
 
     const handleDelete = async (msg: Message) => {
@@ -244,13 +230,10 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
         setContextMenu(null);
         try {
             await teamChatApi.deleteMessage(teamId, msg.id);
-            // Optimistically mark deleted; socket 'message_deleted' will also arrive (deduped)
             setMessages(prev =>
                 prev.map(m => m.id === msg.id ? { ...m, deleted_at: new Date().toISOString() } : m)
             );
-        } catch {
-            // ignore
-        }
+        } catch { }
     };
 
     const handlePin = async (msg: Message) => {
@@ -259,11 +242,8 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
             const res = msg.is_pinned
                 ? await teamChatApi.unpinMessage(teamId, msg.id)
                 : await teamChatApi.pinMessage(teamId, msg.id);
-            // Optimistically update; socket 'message_updated' will also arrive (deduped)
             setMessages(prev => prev.map(m => m.id === res.data.id ? { ...m, ...res.data } : m));
-        } catch {
-            // ignore
-        }
+        } catch { }
     };
 
     const handleSearch = async () => {
@@ -271,18 +251,14 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
         try {
             const res = await teamChatApi.search(teamId, searchQuery);
             setSearchResults(res.data);
-        } catch {
-            // ignore
-        }
+        } catch { }
     };
 
     const loadPinned = async () => {
         try {
             const res = await teamChatApi.getPinned(teamId);
             setPinnedMessages(res.data);
-        } catch {
-            // ignore
-        }
+        } catch { }
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -306,7 +282,6 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
                 file_name: file.name,
                 file_size: file.size,
             });
-            // Optimistically add the file message
             setMessages(prev => {
                 if (prev.some(m => m.id === msgRes.data.id)) return prev;
                 return [...prev, msgRes.data];
@@ -321,7 +296,6 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
         .map(uid => members.find(m => m.user_id === uid)?.user?.name)
         .filter(Boolean) as string[];
 
-    // Group messages by date
     const groupedMessages = messages.reduce(
         (groups: { date: string; msgs: Message[] }[], msg) => {
             const date = new Date(msg.created_at).toDateString();
@@ -338,111 +312,137 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
 
     return (
         <div
-            className="flex flex-col bg-white rounded-xl border border-[#E2E8F0] overflow-hidden"
-            style={{ height: 'calc(100vh - 280px)', minHeight: '520px' }}
+            className="flex flex-col bg-white rounded-[3px] border border-[var(--border)] overflow-hidden shadow-sm animate-in fade-in duration-300"
+            style={{ height: 'calc(100vh - 340px)', minHeight: '520px' }}
             onClick={() => setContextMenu(null)}
         >
-            {/* ── Header ── */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#E2E8F0] shrink-0">
-                <div className="flex items-center gap-2">
-                    <Hash className="h-4 w-4 text-[#1D4ED8]" />
-                    <span className="text-sm font-semibold text-[#0F172A]">Team Chat</span>
-                    <span className="text-xs text-[#94A3B8]">· {members.length} members</span>
-                    <span className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500' : 'bg-red-400'}`} title={connected ? 'Connected' : 'Disconnected'} />
+            {/* Header Section */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-surface-2)] shrink-0">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-[3px] bg-[var(--color-primary)] flex items-center justify-center text-white">
+                        <MessageSquare className="h-5 w-5" />
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-[var(--text-primary)] uppercase tracking-tight">Mission Control Communications</span>
+                            <div className={cn("w-2 h-2 rounded-full", connected ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-red-500")} />
+                        </div>
+                        <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-0.5">
+                            {members.length} Personnel Active · Secure Channel
+                        </p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={() => { setShowSearch(s => !s); setShowPinned(false); }}
-                        className={`p-1.5 rounded-lg transition ${showSearch ? 'bg-[#EFF6FF] text-[#1D4ED8]' : 'text-[#64748B] hover:bg-[#F1F5F9]'}`}
+                        className={cn(
+                            "jira-button border border-[var(--border)] bg-white text-[var(--text-secondary)] h-8 px-3 gap-2 font-bold uppercase text-[10px]",
+                            showSearch && "bg-blue-50 text-[var(--color-primary)] border-[var(--color-primary)]"
+                        )}
                     >
-                        <Search className="h-4 w-4" />
+                        <Search className="h-4 w-4" /> Trace
                     </button>
                     <button
                         onClick={() => { setShowPinned(s => { if (!s) loadPinned(); return !s; }); setShowSearch(false); }}
-                        className={`p-1.5 rounded-lg transition ${showPinned ? 'bg-[#EFF6FF] text-[#1D4ED8]' : 'text-[#64748B] hover:bg-[#F1F5F9]'}`}
+                        className={cn(
+                            "jira-button border border-[var(--border)] bg-white text-[var(--text-secondary)] h-8 px-3 gap-2 font-bold uppercase text-[10px]",
+                            showPinned && "bg-blue-50 text-[var(--color-primary)] border-[var(--color-primary)]"
+                        )}
                     >
-                        <Pin className="h-4 w-4" />
+                        <Pin className="h-4 w-4" /> Intel
                     </button>
                 </div>
             </div>
 
-            {/* ── Search Panel ── */}
-            {showSearch && (
-                <div className="px-4 py-3 border-b border-[#E2E8F0] bg-[#F8FAFC] shrink-0">
-                    <div className="flex gap-2">
-                        <input
-                            className="flex-1 px-3 py-2 rounded-lg border border-[#E2E8F0] text-sm focus:outline-none focus:ring-2 focus:ring-[#1D4ED8]"
-                            placeholder="Search messages..."
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                        />
-                        <button
-                            onClick={handleSearch}
-                            className="px-3 py-2 bg-[#1D4ED8] text-white text-sm rounded-lg hover:bg-[#1E40AF] transition"
-                        >
-                            Search
-                        </button>
+            {/* Panels Container */}
+            <div className="relative">
+                {/* Search Panel */}
+                {showSearch && (
+                    <div className="absolute inset-x-0 top-0 z-20 px-6 py-4 border-b border-[var(--border)] bg-[var(--bg-surface-2)] animate-in slide-in-from-top-4 duration-200">
+                        <div className="flex gap-4">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
+                                <input
+                                    className="w-full pl-9 pr-4 py-2 border border-[var(--border)] rounded-[3px] text-sm font-medium focus:border-[var(--color-primary)] outline-none transition-all"
+                                    placeholder="Search comms history..."
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                                />
+                            </div>
+                            <button
+                                onClick={handleSearch}
+                                className="jira-button jira-button-primary h-10 px-6 font-bold uppercase text-[11px]"
+                            >
+                                Execute Search
+                            </button>
+                        </div>
+                        {searchResults.length > 0 && (
+                            <div className="mt-4 space-y-2 max-h-60 overflow-y-auto no-scrollbar pb-2">
+                                {searchResults.map(m => (
+                                    <div key={m.id} className="card p-3 border-[var(--border)] hover:border-[var(--color-primary)] transition-all cursor-pointer">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest">{m.sender.name}</span>
+                                            <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase">{formatTime(m.created_at)}</span>
+                                        </div>
+                                        <p className="text-sm text-[var(--text-primary)] font-medium">{m.body}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                    {searchResults.length > 0 && (
-                        <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
-                            {searchResults.map(m => (
-                                <div key={m.id} className="text-xs p-2 bg-white rounded-lg border border-[#E2E8F0]">
-                                    <span className="font-semibold text-[#1D4ED8]">{m.sender.name}: </span>
-                                    <span className="text-[#0F172A]">{m.body}</span>
-                                    <span className="text-[#94A3B8] ml-2">{formatTime(m.created_at)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+                )}
 
-            {/* ── Pinned Panel ── */}
-            {showPinned && (
-                <div className="px-4 py-3 border-b border-[#E2E8F0] bg-amber-50 shrink-0">
-                    <p className="text-xs font-semibold text-amber-700 mb-2 flex items-center gap-1">
-                        <Pin className="h-3 w-3" /> Pinned Messages
-                    </p>
-                    {pinnedMessages.length === 0 ? (
-                        <p className="text-xs text-[#94A3B8]">No pinned messages.</p>
-                    ) : (
-                        <div className="space-y-1 max-h-32 overflow-y-auto">
-                            {pinnedMessages.map(m => (
-                                <div key={m.id} className="text-xs p-2 bg-white rounded-lg border border-amber-200">
-                                    <span className="font-semibold text-[#1D4ED8]">{m.sender.name}: </span>
-                                    <span className="text-[#0F172A]">{m.body}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+                {/* Pinned Panel */}
+                {showPinned && (
+                    <div className="absolute inset-x-0 top-0 z-20 px-6 py-4 border-b border-amber-200 bg-amber-50 animate-in slide-in-from-top-4 duration-200">
+                        <p className="text-[10px] font-bold text-amber-700 mb-3 flex items-center gap-2 uppercase tracking-widest">
+                            <Pin className="h-3.5 w-3.5" /> High Priority Intel (Pinned)
+                        </p>
+                        {pinnedMessages.length === 0 ? (
+                            <p className="text-xs text-[var(--text-muted)] italic font-medium">No intel currently pinned to high priority.</p>
+                        ) : (
+                            <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar pb-2">
+                                {pinnedMessages.map(m => (
+                                    <div key={m.id} className="bg-white border border-amber-200 p-3 rounded-[3px] shadow-sm">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">{m.sender.name}</span>
+                                            <button onClick={() => handlePin(m)} className="text-amber-400 hover:text-amber-600"><X className="h-3 w-3" /></button>
+                                        </div>
+                                        <p className="text-sm text-[var(--text-primary)] font-medium leading-relaxed">{m.body}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
 
-            {/* ── Messages Area ── */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-0.5">
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2 no-scrollbar bg-slate-50/30">
                 {loading ? (
-                    <div className="flex items-center justify-center h-full">
-                        <div className="h-6 w-6 rounded-full border-2 border-[#1D4ED8] border-t-transparent animate-spin" />
+                    <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <div className="h-8 w-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
+                        <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Synchronizing Encrypted Channel...</span>
                     </div>
                 ) : messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center">
-                        <Hash className="h-10 w-10 text-[#CBD5E1] mb-3" />
-                        <p className="text-sm font-medium text-[#64748B]">No messages yet</p>
-                        <p className="text-xs text-[#94A3B8] mt-1">Be the first to say something</p>
+                    <div className="flex flex-col items-center justify-center h-full text-center opacity-40">
+                        <MessageSquare className="h-16 w-16 text-[var(--text-muted)] mb-6" />
+                        <h3 className="text-lg font-bold text-[var(--text-primary)] uppercase tracking-wider">Channel Silence</h3>
+                        <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-tight">Initiate communication sequence to begin collaboration.</p>
                     </div>
                 ) : (
                     groupedMessages.map(group => (
-                        <div key={group.date}>
+                        <div key={group.date} className="space-y-1">
                             {/* Date divider */}
-                            <div className="flex items-center gap-3 my-4">
-                                <div className="flex-1 h-px bg-[#E2E8F0]" />
-                                <span className="text-[10px] text-[#94A3B8] font-semibold uppercase tracking-wide px-2">
+                            <div className="flex items-center gap-6 my-8">
+                                <div className="flex-1 h-[1px] bg-[var(--border)]" />
+                                <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-[0.2em] whitespace-nowrap">
                                     {new Date(group.date).toDateString() === new Date().toDateString()
-                                        ? 'Today'
-                                        : new Date(group.date).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                                        ? 'TDR - TODAY'
+                                        : new Date(group.date).toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase()}
                                 </span>
-                                <div className="flex-1 h-px bg-[#E2E8F0]" />
+                                <div className="flex-1 h-[1px] bg-[var(--border)]" />
                             </div>
 
                             {group.msgs.map((msg, i) => {
@@ -452,8 +452,10 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
 
                                 if (msg.deleted_at) {
                                     return (
-                                        <div key={msg.id} className="py-0.5 px-10">
-                                            <span className="text-xs text-[#94A3B8] italic">This message was deleted</span>
+                                        <div key={msg.id} className="py-2 pl-14">
+                                            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase italic tracking-widest opacity-60 flex items-center gap-2">
+                                                <X className="h-3 w-3" /> Communication Decrypted & Purged
+                                            </span>
                                         </div>
                                     );
                                 }
@@ -461,38 +463,43 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
                                 return (
                                     <div
                                         key={msg.id}
-                                        className={`flex gap-2.5 py-0.5 group ${isMine ? 'flex-row-reverse' : ''}`}
+                                        className={cn(
+                                            "group flex gap-4 px-2 py-1 rounded-[3px] hover:bg-white transition-colors relative",
+                                            isMine ? "flex-row-reverse text-right" : "flex-row"
+                                        )}
                                         onContextMenu={e => {
                                             e.preventDefault();
                                             setContextMenu({ x: e.clientX, y: e.clientY, msg });
                                         }}
                                     >
                                         {/* Avatar */}
-                                        <div
-                                            className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-1
-                                                ${showHeader ? 'opacity-100' : 'opacity-0'}
-                                                ${isMine ? 'bg-[#1D4ED8] text-white' : 'bg-[#E2E8F0] text-[#475569]'}`}
-                                        >
+                                        <div className={cn(
+                                            "w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold border-2 border-white shrink-0 shadow-sm transition-transform group-hover:scale-105",
+                                            showHeader ? "opacity-100" : "opacity-0",
+                                            isMine ? "bg-[var(--color-primary)] text-white order-last" : "bg-white text-[var(--color-primary)]"
+                                        )}>
                                             {msg.sender.name?.charAt(0)?.toUpperCase()}
                                         </div>
 
-                                        <div className={`flex flex-col max-w-[68%] ${isMine ? 'items-end' : 'items-start'}`}>
-                                            {/* Name + time */}
+                                        <div className={cn(
+                                            "flex flex-col max-w-[75%] min-w-0",
+                                            isMine ? "items-end" : "items-start"
+                                        )}>
                                             {showHeader && (
-                                                <div className={`flex items-center gap-2 mb-1 ${isMine ? 'flex-row-reverse' : ''}`}>
-                                                    <span className="text-xs font-semibold text-[#0F172A]">{msg.sender.name}</span>
-                                                    <span className="text-[10px] text-[#94A3B8]">{formatTime(msg.created_at)}</span>
+                                                <div className={cn("flex items-center gap-3 mb-1.5", isMine && "flex-row-reverse")}>
+                                                    <span className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-tight">{msg.sender.name}</span>
+                                                    <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter opacity-60">{formatTime(msg.created_at)}</span>
                                                     {onlineUsers.has(msg.sender_id) && (
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                                     )}
                                                 </div>
                                             )}
 
-                                            {/* Edit mode */}
+                                            {/* Edit mode or Message Bubble */}
                                             {editingId === msg.id ? (
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 w-full max-w-md bg-white p-2 border-2 border-[var(--color-primary)] rounded-[3px] shadow-lg">
                                                     <input
-                                                        className="px-3 py-1.5 rounded-lg border border-[#1D4ED8] text-sm focus:outline-none min-w-[200px]"
+                                                        className="flex-1 bg-transparent border-none text-sm font-medium outline-none"
                                                         value={editBody}
                                                         onChange={e => setEditBody(e.target.value)}
                                                         onKeyDown={e => {
@@ -501,50 +508,65 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
                                                         }}
                                                         autoFocus
                                                     />
-                                                    <button onClick={() => handleEdit(msg)} className="p-1 text-green-600 hover:bg-green-50 rounded-lg">
-                                                        <Check className="h-4 w-4" />
-                                                    </button>
-                                                    <button onClick={() => setEditingId(null)} className="p-1 text-[#94A3B8] hover:bg-[#F1F5F9] rounded-lg">
-                                                        <X className="h-4 w-4" />
-                                                    </button>
+                                                    <div className="flex gap-1 shrink-0">
+                                                        <button onClick={() => handleEdit(msg)} className="p-1 px-2 bg-emerald-500 text-white rounded-[2px] transition-colors"><Check className="h-3.5 w-3.5" /></button>
+                                                        <button onClick={() => setEditingId(null)} className="p-1 px-2 bg-slate-200 text-slate-600 rounded-[2px] transition-colors"><X className="h-3.5 w-3.5" /></button>
+                                                    </div>
                                                 </div>
                                             ) : (
-                                                /* Bubble */
-                                                <div
-                                                    className={`relative px-3 py-2 rounded-2xl text-sm leading-relaxed break-words
-                                                        ${isMine
-                                                            ? 'bg-[#1D4ED8] text-white rounded-tr-sm'
-                                                            : 'bg-[#F1F5F9] text-[#0F172A] rounded-tl-sm'}
-                                                        ${msg.is_pinned ? 'ring-1 ring-amber-400' : ''}`}
-                                                >
+                                                <div className={cn(
+                                                    "relative p-3 rounded-[3px] text-sm leading-relaxed font-medium transition-all group-hover:shadow-md",
+                                                    isMine 
+                                                        ? "bg-[var(--color-primary)] text-white" 
+                                                        : "bg-white border border-[var(--border)] text-[var(--text-primary)]",
+                                                    msg.is_pinned && "border-2 border-amber-300"
+                                                )}>
                                                     {msg.type === 'FILE' && msg.file_url ? (
-                                                        <div>
-                                                            <a
-                                                                href={msg.file_url}
-                                                                target="_blank"
-                                                                rel="noreferrer"
-                                                                className={`flex items-center gap-2 underline ${isMine ? 'text-blue-200' : 'text-[#1D4ED8]'}`}
-                                                            >
-                                                                <Paperclip className="h-3.5 w-3.5 shrink-0" />
-                                                                <span className="truncate max-w-[200px]">{msg.file_name}</span>
-                                                            </a>
-                                                            {msg.file_size && (
-                                                                <p className={`text-[10px] mt-0.5 ${isMine ? 'text-blue-200' : 'text-[#94A3B8]'}`}>
-                                                                    {formatFileSize(msg.file_size)}
-                                                                </p>
-                                                            )}
+                                                        <div className="flex flex-col gap-2 min-w-[200px]">
+                                                            <div className={cn("p-2 rounded-[2px] flex items-center gap-3", isMine ? "bg-white/10" : "bg-slate-50")}>
+                                                                <Paperclip className={cn("h-4 w-4", isMine ? "text-white" : "text-[var(--color-primary)]")} />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-xs font-bold truncate">{msg.file_name}</p>
+                                                                    <p className={cn("text-[9px] uppercase font-bold", isMine ? "text-white/60" : "text-[var(--text-muted)]")}>{formatFileSize(msg.file_size || 0)}</p>
+                                                                </div>
+                                                                <a href={msg.file_url} target="_blank" rel="noreferrer" className={cn("p-1.5 rounded-[2px] transition-colors", isMine ? "hover:bg-white/20" : "hover:bg-slate-200")}>
+                                                                    <Download className="h-3.5 w-3.5" />
+                                                                </a>
+                                                            </div>
                                                         </div>
                                                     ) : (
-                                                        <span className="whitespace-pre-wrap">{msg.body}</span>
+                                                        <p className="whitespace-pre-wrap">{msg.body}</p>
                                                     )}
-                                                    {msg.is_edited && (
-                                                        <span className={`text-[10px] ml-1 ${isMine ? 'text-blue-200' : 'text-[#94A3B8]'}`}>
-                                                            (edited)
-                                                        </span>
-                                                    )}
-                                                    {msg.is_pinned && (
-                                                        <Pin className={`h-3 w-3 absolute -top-1.5 -right-1.5 ${isMine ? 'text-amber-400' : 'text-amber-500'}`} />
-                                                    )}
+                                                    
+                                                    {/* Status Indicators bottom of bubble */}
+                                                    <div className={cn("flex items-center gap-2 mt-1", isMine ? "justify-end" : "justify-start")}>
+                                                        {msg.is_edited && (
+                                                            <span className={cn("text-[8px] font-bold uppercase tracking-widest", isMine ? "text-white/40" : "text-[var(--text-muted)]")}>
+                                                                MODIFIED
+                                                            </span>
+                                                        )}
+                                                        {msg.is_pinned && (
+                                                            <span className={cn("text-[8px] font-bold uppercase tracking-widest flex items-center gap-1", isMine ? "text-amber-300" : "text-amber-600")}>
+                                                                <Pin className="h-2 w-2" /> INTEL
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Context Button placeholder for hover */}
+                                                    <div className={cn(
+                                                        "absolute top-2 opacity-0 group-hover:opacity-100 transition-all",
+                                                        isMine ? "-left-8" : "-right-8"
+                                                    )}>
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setContextMenu({ x: e.clientX, y: e.clientY, msg });
+                                                            }}
+                                                            className="p-1.5 bg-white border border-[var(--border)] rounded-[3px] text-[var(--text-muted)] hover:text-[var(--color-primary)] shadow-sm"
+                                                        >
+                                                            <MoreHorizontal className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -555,64 +577,88 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
                     ))
                 )}
 
-                {/* Typing indicator */}
+                {/* Typing status bar */}
                 {typingNames.length > 0 && (
-                    <div className="flex items-center gap-2 px-10 py-1">
-                        <div className="flex gap-0.5">
+                    <div className="flex items-center gap-3 px-14 py-2 mt-2 bg-blue-50/50 rounded-[3px] border border-blue-100 w-fit animate-in fade-in slide-in-from-bottom-2">
+                        <div className="flex gap-1">
                             {[0, 150, 300].map(delay => (
-                                <span
-                                    key={delay}
-                                    className="w-1.5 h-1.5 bg-[#94A3B8] rounded-full animate-bounce"
-                                    style={{ animationDelay: `${delay}ms` }}
-                                />
+                                <div key={delay} className="w-1.5 h-1.5 bg-[var(--color-primary)] rounded-full animate-bounce" style={{ animationDelay: `${delay}ms` }} />
                             ))}
                         </div>
-                        <span className="text-xs text-[#94A3B8]">
-                            {typingNames.join(', ')} {typingNames.length === 1 ? 'is' : 'are'} typing...
+                        <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-tight">
+                            {typingNames.join(', ')} {typingNames.length === 1 ? 'is' : 'are'} transmitting data...
                         </span>
                     </div>
                 )}
 
-                <div ref={bottomRef} />
+                <div ref={bottomRef} className="h-4" />
             </div>
 
-            {/* ── Input Bar ── */}
-            <div className="px-4 py-3 border-t border-[#E2E8F0] shrink-0">
-                <div className="flex items-end gap-2">
-                    <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileUpload} />
-                    <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="p-2 text-[#64748B] hover:text-[#1D4ED8] hover:bg-[#EFF6FF] rounded-lg transition shrink-0 mb-0.5"
-                    >
-                        <Paperclip className="h-4 w-4" />
-                    </button>
+            {/* Input Section */}
+            <div className="px-6 py-6 border-t border-[var(--border)] bg-white shrink-0">
+                <div className="flex items-center gap-4 bg-[var(--bg-surface-2)] border-2 border-[var(--border)] p-2 rounded-[3px] focus-within:border-[var(--color-primary)] transition-all">
+                    <input ref= {fileInputRef} type="file" className="hidden" onChange={handleFileUpload} />
+                    <div className="flex items-center gap-1">
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-2 text-[var(--text-muted)] hover:text-[var(--color-primary)] hover:bg-white rounded-[3px] transition-all"
+                            title="Attach Mission Asset"
+                        >
+                            <Paperclip className="h-4 w-4" />
+                        </button>
+                        <button className="p-2 text-[var(--text-muted)] hover:text-amber-500 hover:bg-white rounded-[3px] transition-all">
+                            <Smile className="h-4 w-4" />
+                        </button>
+                        <div className="w-[1px] h-6 bg-[var(--border)] mx-1" />
+                    </div>
+
                     <textarea
                         ref={textareaRef}
                         rows={1}
-                        className="flex-1 px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#1D4ED8] resize-none overflow-y-auto"
-                        placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
+                        className="flex-1 bg-transparent py-2 text-sm font-medium text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none resize-none no-scrollbar"
+                        placeholder="Transmit intelligence..."
                         value={input}
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         style={{ minHeight: '40px', maxHeight: '128px' }}
                     />
-                    <button
-                        onClick={handleSend}
-                        disabled={!input.trim() || sending}
-                        className="p-2 bg-[#1D4ED8] hover:bg-[#1E40AF] disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-xl transition shrink-0 mb-0.5"
-                    >
-                        <Send className="h-4 w-4" />
-                    </button>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleSend}
+                            disabled={!input.trim() || sending}
+                            className={cn(
+                                "jira-button jira-button-primary h-10 px-4 gap-2",
+                                (!input.trim() || sending) && "opacity-40"
+                            )}
+                        >
+                            {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                            <span className="font-bold uppercase text-[10px]">Send</span>
+                        </button>
+                    </div>
+                </div>
+                <div className="flex items-center justify-between mt-3 px-1">
+                    <div className="flex items-center gap-3">
+                        <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1">
+                             <ShieldCheck className="h-3 w-3" /> End-to-end Encrypted
+                        </span>
+                    </div>
+                    <span className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                        Press [Enter] to transmit · [Shift+Enter] for split line
+                    </span>
                 </div>
             </div>
 
-            {/* ── Context Menu ── */}
+            {/* Context Menu Overlay */}
             {contextMenu && (
                 <div
-                    className="fixed z-50 bg-white border border-[#E2E8F0] rounded-xl shadow-xl py-1 min-w-[160px]"
+                    className="fixed z-50 bg-white border border-[var(--border)] rounded-[3px] shadow-xl py-1 min-w-[180px] animate-in zoom-in-95 duration-100"
                     style={{ top: contextMenu.y, left: contextMenu.x }}
                     onClick={e => e.stopPropagation()}
                 >
+                    <div className="px-3 py-1.5 border-b border-[var(--border)] mb-1 bg-[var(--bg-surface-2)]">
+                        <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-[0.1em]">Intelligence Ops</p>
+                    </div>
                     {contextMenu.msg.sender_id === currentUser?.id && (
                         <button
                             onClick={() => {
@@ -620,26 +666,26 @@ export default function TeamChat({ teamId, currentUser, members, isLeader }: Pro
                                 setEditBody(contextMenu.msg.body);
                                 setContextMenu(null);
                             }}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-[#0F172A] hover:bg-[#F8FAFC]"
+                            className="flex items-center gap-3 w-full px-4 py-2 text-xs font-bold text-[var(--text-primary)] hover:bg-blue-50 hover:text-[var(--color-primary)] transition-colors"
                         >
-                            <Edit2 className="h-3.5 w-3.5" /> Edit
+                            <Edit2 className="h-3.5 w-3.5" /> Modify Comms
                         </button>
                     )}
-                    {isLeader && (
+                    {(isLeader || contextMenu.msg.sender_id === currentUser?.id) && (
                         <button
                             onClick={() => handlePin(contextMenu.msg)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-[#0F172A] hover:bg-[#F8FAFC]"
+                            className="flex items-center gap-3 w-full px-4 py-2 text-xs font-bold text-[var(--text-primary)] hover:bg-amber-50 hover:text-amber-700 transition-colors"
                         >
-                            <Pin className="h-3.5 w-3.5" />
-                            {contextMenu.msg.is_pinned ? 'Unpin' : 'Pin'}
+                            <Pin className="h-3.5 w-3.5" /> 
+                            {contextMenu.msg.is_pinned ? 'Declassify (Unpin)' : 'Elevate to Intel (Pin)'}
                         </button>
                     )}
                     {(contextMenu.msg.sender_id === currentUser?.id || isLeader) && (
                         <button
                             onClick={() => handleDelete(contextMenu.msg)}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            className="flex items-center gap-3 w-full px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
                         >
-                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                            <Trash2 className="h-3.5 w-3.5" /> Purge Metadata
                         </button>
                     )}
                 </div>
