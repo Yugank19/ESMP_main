@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { 
     Send, Pin, Search, Trash2, Edit2, X, Check, Paperclip, 
     Hash, MoreHorizontal, Smile, Plus, Download, Clock,
-    ShieldCheck, MessageSquare, CornerDownRight, User
+    ShieldCheck, MessageSquare, CornerDownRight, User, Loader2
 } from 'lucide-react';
 import { teamChatApi } from '@/lib/team-chat-api';
 import { io, Socket } from 'socket.io-client';
