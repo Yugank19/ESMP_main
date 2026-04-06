@@ -7,7 +7,7 @@ import {
   Lock, Eye, EyeOff, LogOut, Camera, Sliders, 
   ShieldCheck, Smartphone, Settings as SettingsIcon,
   ChevronRight, Terminal, Zap, Info, Mail, Phone,
-  FileText
+  FileText, X, AlertCircle, Activity
 } from 'lucide-react';
 import { getUserPreferences, updateUserPreferences, getTeamSettings, updateTeamSettings } from '@/lib/settings-api';
 import { callLogout } from '@/lib/audit-api';
