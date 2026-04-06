@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { 
     BookOpen, Search, Plus, X, Pin, Trash2, ArrowLeft, 
     Book, ChevronRight, Eye, User, Calendar, Tag,
-    ShieldCheck, Zap, Globe, FileText, Layout, Share2
+    ShieldCheck, Zap, Globe, FileText, Layout, Share2,
+    CheckCircle2
 } from 'lucide-react';
 import { getArticles, getArticle, createArticle, updateArticle, deleteArticle } from '@/lib/kb-api';
 import { cn } from '@/lib/utils';
