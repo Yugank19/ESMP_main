@@ -5,7 +5,8 @@ import {
     Upload, FolderPlus, Folder, Download, Trash2,
     Star, Search, ChevronRight, Home, X, MessageSquare, Eye,
     AlertCircle, RefreshCw, FileText, MoreVertical, LayoutGrid, List,
-    ShieldCheck, Database, HardDrive, File, FileCode, FileImage, FileStack
+    ShieldCheck, Database, HardDrive, File, FileCode, FileImage, FileStack,
+    Send
 } from 'lucide-react';
 import { teamFilesApi } from '@/lib/team-files-api';
 import { cn } from '@/lib/utils';
@@ -229,7 +230,7 @@ export default function FileManager({ teamId, currentUser, isLeader }: Props) {
                             <div key={i} className="flex items-center gap-1 shrink-0">
                                 {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-[var(--text-muted)]" />}
                                 <button
-                                    onClick={() => handleBreadcrumb(idx)}
+                                    onClick={() => handleBreadcrumb(i)}
                                     className={cn(
                                         "text-[11px] font-bold uppercase tracking-widest transition px-2 py-1 rounded-[3px]",
                                         i === breadcrumb.length - 1 
