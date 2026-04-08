@@ -20,4 +20,5 @@ __exportStar(require("./lib/dtos/projects-tasks.dto"), exports);
 __exportStar(require("./lib/dtos/teams.dto"), exports);
 __exportStar(require("./lib/dtos/phase3.dto"), exports);
 __exportStar(require("./lib/dtos/phase4.dto"), exports);
+__exportStar(require("./lib/dtos/phase5.dto"), exports);
 //# sourceMappingURL=index.js.map
