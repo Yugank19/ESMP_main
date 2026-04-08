@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-    Loader2, Mail, Lock, ArrowRight, ShieldCheck, 
+import {
+    Loader2, Mail, Lock, ArrowRight, ShieldCheck,
     Terminal, Zap, Fingerprint, Activity, Info
 } from 'lucide-react';
 import api from '@/lib/api';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-const inputClass = "w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-[3px] text-sm font-bold text-slate-900 placeholder:text-slate-200 outline-none focus:border-blue-500 shadow-sm transition-all uppercase tracking-tight";
+const inputClass = "w-full pl-12 pr-4 py-3 md:py-4 bg-white border border-slate-200 rounded-[3px] text-sm font-bold text-slate-900 placeholder:text-slate-200 outline-none focus:border-blue-500 shadow-sm transition-all uppercase tracking-tight";
 const labelClass = "text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block pl-1";
 
 export default function LoginPage() {
@@ -31,7 +31,7 @@ export default function LoginPage() {
             const res = await api.post('/auth/login', formData);
             localStorage.setItem('token', res.data.access_token);
             localStorage.setItem('user', JSON.stringify(res.data.user));
-            
+
             const role = (res.data.user.roles?.[0] || '').toUpperCase();
             if (role === 'CLIENT') {
                 router.push('/client-dashboard');
@@ -46,7 +46,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="w-full space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="w-full space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
             {/* Mission Entry Header */}
             <div className="space-y-4">
                 <div className="inline-flex items-center gap-2.5 bg-blue-50/50 text-blue-600 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-[2px] border border-blue-100 shadow-sm">
@@ -122,7 +122,7 @@ export default function LoginPage() {
                     {loading ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                        <>Initialize_Session <ArrowRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" /></>
+                        <>Log In <ArrowRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" /></>
                     )}
                 </button>
             </form>
@@ -134,7 +134,7 @@ export default function LoginPage() {
                 </div>
                 <div className="relative flex justify-center">
                     <span className="bg-white px-6 text-[9px] text-slate-300 font-black uppercase tracking-[0.4em]">
-                        OR_INITIALIZE_LINK
+                        OR
                     </span>
                 </div>
             </div>
@@ -150,15 +150,15 @@ export default function LoginPage() {
             <div className="grid grid-cols-1 gap-3 pt-6 border-t border-slate-50">
                 <div className="flex items-center justify-between px-4 py-3 bg-slate-50/30 border border-slate-100 rounded-[3px]">
                     <div className="flex items-center gap-3">
-                         <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PCI_DSS_LEVEL_1_CERT</span>
+                        <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PCI_DSS_LEVEL_1_CERT</span>
                     </div>
                     <div className="flex items-center gap-2">
-                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-emerald-500 shadow-sm" />
-                         <span className="text-[8px] font-black text-emerald-600 uppercase">Secure</span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-emerald-500 shadow-sm" />
+                        <span className="text-[8px] font-black text-emerald-600 uppercase">Secure</span>
                     </div>
                 </div>
-                
+
                 <div className="flex items-center justify-center gap-6 opacity-30">
                     <div className="flex items-center gap-1.5">
                         <Terminal className="h-3 w-3" />

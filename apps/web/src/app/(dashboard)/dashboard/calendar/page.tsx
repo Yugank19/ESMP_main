@@ -299,7 +299,7 @@ export default function CalendarPage() {
                         {(userRole === 'LEADER' || userRole === 'REVIEWER') && (
                             <button onClick={() => setShowCreate(true)}
                                 className="w-full flex items-center justify-center gap-3 h-12 border border-[var(--color-primary)] text-[var(--color-primary)] bg-white rounded-[3px] text-[10px] font-bold uppercase tracking-widest hover:bg-blue-50 transition-all shadow-sm group">
-                                <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" /> Initialize New Protocol
+                                <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform" /> Create New Event
                             </button>
                         )}
                     </div>

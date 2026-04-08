@@ -55,7 +55,7 @@ export default function ProjectsPage() {
                 </div>
                 <Link href="/dashboard/teams" 
                     className="jira-button jira-button-primary h-12 px-8 gap-3 font-bold uppercase text-[10px] shadow-lg shadow-blue-100 flex items-center">
-                    <Plus className="h-4 w-4" /> Initialize Mission
+                    <Plus className="h-4 w-4" /> Start Project
                 </Link>
             </div>
 
@@ -89,7 +89,7 @@ export default function ProjectsPage() {
                     <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">No project entities detected within current sector parameters.</p>
                     {teams.length === 0 && (
                         <Link href="/dashboard/teams" className="mt-8 flex items-center gap-2 text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest hover:translate-x-2 transition-transform">
-                            Initialize First Project Sector <ArrowUpRight className="h-4 w-4" />
+                            Create First Project Sector <ArrowUpRight className="h-4 w-4" />
                         </Link>
                     )}
                 </div>

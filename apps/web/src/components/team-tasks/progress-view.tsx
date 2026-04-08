@@ -67,7 +67,7 @@ export default function ProgressView({ teamId, updates, isLeader, onRefresh }: {
                     <p className="text-[var(--text-secondary)] mt-2 max-w-sm font-medium">
                         Log your first daily mission update to begin tracking project evolution and team velocity.
                     </p>
-                    <button onClick={() => setShowForm(true)} className="jira-button jira-button-primary mt-8 uppercase text-[10px]">Initialize First Report</button>
+                    <button onClick={() => setShowForm(true)} className="jira-button jira-button-primary mt-8 uppercase text-[10px]">Create First Report</button>
                 </div>
             ) : (
                 <div className="space-y-10 relative">

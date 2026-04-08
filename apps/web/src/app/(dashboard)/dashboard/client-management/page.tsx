@@ -117,7 +117,7 @@ export default function ClientManagementPage() {
         </div>
         <button onClick={() => setAddClientOpen(true)}
           className="jira-button jira-button-primary h-12 px-8 gap-3 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">
-          <Plus className="h-4 w-4" /> Initialize Client
+          <Plus className="h-4 w-4" /> Add Client
         </button>
       </div>
 
@@ -255,7 +255,7 @@ export default function ClientManagementPage() {
           <div className="bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden border border-[var(--border)] animate-in zoom-in-95 duration-200 flex flex-col">
             <div className="px-8 py-6 bg-[var(--bg-surface-2)] border-b border-[var(--border)] flex items-center justify-between">
               <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
-                  <Plus className="h-4 w-4 text-[var(--color-primary)]" /> Initialize Stakeholder Entity
+                  <Plus className="h-4 w-4 text-[var(--color-primary)]" /> Add Stakeholder Entity
               </h2>
               <button onClick={() => { setAddClientOpen(false); setError(""); }} className="p-1.5 rounded-[3px] hover:bg-white border border-transparent transition-all">
                 <X className="h-4 w-4 text-slate-400" />
@@ -331,7 +331,7 @@ export default function ClientManagementPage() {
               <div className="flex gap-4 pt-4 border-t border-slate-100">
                 <button type="submit" disabled={saving}
                   className="jira-button jira-button-primary h-12 flex-1 gap-3 font-bold uppercase text-[10px] shadow-lg shadow-blue-100 disabled:opacity-50">
-                  {saving ? "COMMITTING..." : "Initialize Entity"}
+                  {saving ? "SAVING..." : "Save Client"}
                 </button>
                 <button type="button" onClick={() => { setAddClientOpen(false); setError(""); }}
                   className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Abort</button>

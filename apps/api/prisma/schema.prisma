@@ -87,6 +87,11 @@ model User {
   client_deliverables ClientDeliverable[]
   client_feedback    ClientFeedback[]
 
+  // New Chat relations
+  sent_chat_requests      ChatRequest[] @relation("SentRequests")
+  received_chat_requests  ChatRequest[] @relation("ReceivedRequests")
+  room_memberships        RoomMember[]
+
   // Role details
   student_detail  StudentDetail?
   employee_detail EmployeeDetail?
@@ -292,12 +297,45 @@ model Room {
   project_id String?
   type       String   @default("DIRECT") // DIRECT, GROUP, PROJECT
   name       String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   project    Project? @relation(fields: [project_id], references: [id])
   messages   Message[]
+  members    RoomMember[]
 
   @@map("rooms")
 }
+
+model RoomMember {
+  id         String   @id @default(uuid())
+  room_id    String
+  user_id    String
+  role       String   @default("MEMBER") // ADMIN, MEMBER
+  joined_at  DateTime @default(now())
+
+  room       Room     @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id])
+
+  @@unique([room_id, user_id])
+  @@map("room_members")
+}
+
+model ChatRequest {
+  id          String   @id @default(uuid())
+  sender_id   String
+  receiver_id String
+  status      String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  sender      User     @relation("SentRequests", fields: [sender_id], references: [id])
+  receiver    User     @relation("ReceivedRequests", fields: [receiver_id], references: [id])
+
+  @@unique([sender_id, receiver_id])
+  @@map("chat_requests")
+}
+
 
 model Message {
   id          String   @id @default(uuid())

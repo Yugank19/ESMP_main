@@ -117,7 +117,7 @@ export default function TicketsPage() {
         </div>
         <button onClick={() => setShowCreate(true)}
           className="jira-button jira-button-primary h-12 px-8 gap-3 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">
-          <Plus className="h-4 w-4" /> Initialize Request
+          <Plus className="h-4 w-4" /> Create Request
         </button>
       </div>
 
@@ -177,7 +177,7 @@ export default function TicketsPage() {
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
-                  {['Identifier', 'Request Intel', 'Category', 'Priority', 'Current State', 'Technician', 'Initialized'].map(h => (
+                  {['Identifier', 'Request Intel', 'Category', 'Priority', 'Current State', 'Technician', 'Created On'].map(h => (
                     <th key={h} className="text-left px-6 py-4 text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] first:pl-8">{h}</th>
                   ))}
                 </tr>
@@ -244,7 +244,7 @@ export default function TicketsPage() {
             <form onSubmit={handleCreate} className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-8">
               <div>
                  <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Broadcast Service Request</h3>
-                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Initialize formalized support request for resource allocation.</p>
+                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Create formalized support request for resource allocation.</p>
               </div>
 
               <div className="space-y-6">

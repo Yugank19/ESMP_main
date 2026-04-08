@@ -52,23 +52,23 @@ export default function TeamsPage() {
         <div className="flex flex-col space-y-8 pb-10">
             {/* Header Section */}
             <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-bold text-[var(--text-primary)]">Teams & Workspaces</h1>
                         <p className="text-sm text-[var(--text-secondary)] mt-1">
                             Collaborate across projects and manage your team resources
                         </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <button 
                             onClick={() => setShowJoin(true)}
-                            className="jira-button border border-[var(--border)] bg-white text-[var(--text-secondary)] gap-2 font-bold uppercase text-[10px]"
+                            className="jira-button border border-[var(--border)] bg-white text-[var(--text-secondary)] gap-2 font-bold uppercase text-[9px] sm:text-[10px] h-9"
                         >
                             <UserPlus className="h-4 w-4" /> Join Team
                         </button>
                         <button 
                             onClick={() => setShowCreate(true)}
-                            className="jira-button jira-button-primary gap-2 font-bold uppercase text-[10px]"
+                            className="jira-button jira-button-primary gap-2 font-bold uppercase text-[9px] sm:text-[10px] h-9"
                         >
                             <Plus className="h-4 w-4" /> Create Team
                         </button>
@@ -76,8 +76,8 @@ export default function TeamsPage() {
                 </div>
 
                 {/* Filters Row */}
-                <div className="flex items-center gap-4 border-b border-[var(--border)] pb-4">
-                    <div className="relative min-w-[320px]">
+                <div className="flex flex-col md:flex-row md:items-center gap-4 border-b border-[var(--border)] pb-4">
+                    <div className="relative w-full md:min-w-[320px] md:max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
                         <input 
                             placeholder="Filter teams..." 
@@ -86,11 +86,11 @@ export default function TeamsPage() {
                             className="w-full pl-9 pr-4 py-2 bg-white border border-[var(--border)] rounded-[3px] text-sm focus:border-[var(--color-primary)] transition-all outline-none font-medium"
                         />
                     </div>
-                    <div className="flex items-center gap-2">
-                        <button className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-[var(--color-primary)] bg-[var(--bg-surface-2)] rounded-[3px]">
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar whitespace-nowrap">
+                        <button className="flex items-center shrink-0 gap-2 px-3 py-2 text-xs font-bold text-[var(--color-primary)] bg-[var(--bg-surface-2)] rounded-[3px]">
                            <LayoutGrid className="h-4 w-4" /> All Teams
                         </button>
-                        <button className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+                        <button className="flex items-center shrink-0 gap-2 px-3 py-2 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                            <Crown className="h-4 w-4" /> Managed by me
                         </button>
                     </div>

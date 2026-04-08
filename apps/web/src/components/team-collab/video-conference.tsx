@@ -236,7 +236,7 @@ export default function VideoConference({ teamId, teamName, currentUser, members
                                         Team <span className="text-[var(--color-primary)]">{teamName}</span><br />Discovery Terminal
                                     </h2>
                                     <p className="text-sm font-medium text-[var(--text-secondary)] leading-relaxed max-w-sm">
-                                        Initialize synchronized audio-visual communication with team personnel. Supports HD transmission and secure desktop sharing.
+                                        Start a video call with team personnel. Supports HD transmission and secure desktop sharing.
                                     </p>
                                 </div>
 
@@ -266,7 +266,7 @@ export default function VideoConference({ teamId, teamName, currentUser, members
                                         onClick={notifyMembers} 
                                         className="jira-button jira-button-primary h-14 px-8 gap-4 font-bold uppercase text-[12px] group w-full sm:w-auto"
                                     >
-                                        <Video className="h-5 w-5 transition-transform group-hover:scale-110" /> Initialize Operational Call
+                                        <Video className="h-5 w-5 transition-transform group-hover:scale-110" /> Start Video Call
                                     </button>
                                     <p className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
                                         <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> End-to-end encrypted Discovery link generated

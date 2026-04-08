@@ -5,10 +5,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     return (
         <div
             className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden bg-slate-950 font-sans"
-            style={{ 
-                backgroundImage: 'url("/images/auth-bg.png")', 
-                backgroundSize: 'cover', 
-                backgroundPosition: 'center' 
+            style={{
+                backgroundImage: 'url("/images/auth-bg.png")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
             }}
         >
             {/* Tactical Grid Overlay */}
@@ -22,7 +22,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             {/* Enterprise Access Terminal Card */}
             <div
                 className="relative z-10 w-full max-w-5xl flex rounded-[4px] overflow-hidden shadow-[0_48px_128px_rgba(0,0,0,0.8)] border border-white/5 bg-slate-900/40 backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-1000"
-                style={{ minHeight: '680px' }}
+                style={{ minHeight: 'clamp(500px, 80vh, 680px)' }}
             >
                 {/* Left Sector: Strategic Overview */}
                 <div className="hidden lg:flex lg:w-[45%] bg-slate-950/40 flex-col justify-between p-14 relative overflow-hidden border-r border-white/5">
@@ -93,18 +93,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 </div>
 
                 {/* Right Sector: Authentication Hub */}
-                <div className="flex-1 flex items-center justify-center bg-white/95 backdrop-blur-2xl px-16 py-16 relative overflow-hidden">
+                <div className="flex-1 flex items-center justify-center bg-white/80 md:bg-white/95 backdrop-blur-2xl px-6 py-12 md:px-16 md:py-16 relative overflow-hidden">
                     {/* Subtle Sector ID background */}
                     <div className="absolute top-10 right-10 opacity-[0.03] pointer-events-none select-none">
                         <Lock className="h-64 w-64 text-slate-900" />
                     </div>
-                    
+
                     <div className="w-full max-w-sm relative z-10">
                         {children}
                     </div>
                 </div>
             </div>
-            
+
             {/* Terminal Status Footer */}
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-8 opacity-20 pointer-events-none">
                 <div className="flex items-center gap-2">

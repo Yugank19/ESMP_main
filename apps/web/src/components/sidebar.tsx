@@ -14,37 +14,37 @@ import { callLogout } from '@/lib/audit-api';
 import { useState, useEffect } from 'react';
 
 const mainNav = [
-    { href: '/dashboard',          label: 'Dashboard',   icon: LayoutDashboard, exact: true },
-    { href: '/dashboard/projects', label: 'Projects',    icon: Briefcase },
-    { href: '/dashboard/tasks',    label: 'Tasks',       icon: CheckSquare },
-    { href: '/dashboard/teams',    label: 'Teams',       icon: Users },
-    { href: '/dashboard/chat',     label: 'Chat',        icon: MessageSquare },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+    { href: '/dashboard/projects', label: 'Projects', icon: Briefcase },
+    { href: '/dashboard/tasks', label: 'Tasks', icon: CheckSquare },
+    { href: '/dashboard/teams', label: 'Teams', icon: Users },
+    { href: '/dashboard/chat', label: 'Chat', icon: MessageSquare },
 ];
 
 const enterpriseNav = [
-    { href: '/dashboard/my-workspace',   label: 'My Workspace',     icon: LayoutGrid },
-    { href: '/dashboard/tickets',        label: 'Service Requests', icon: Ticket },
-    { href: '/dashboard/approvals',      label: 'Approvals',        icon: GitBranch },
-    { href: '/dashboard/time-tracking',  label: 'Time Tracking',    icon: Clock },
-    { href: '/dashboard/bugs',           label: 'Bug Tracker',      icon: Bug },
-    { href: '/dashboard/workload',       label: 'Resource Mgmt',    icon: UserCheck },
-    { href: '/dashboard/knowledge-base', label: 'Knowledge Base',   icon: BookOpen },
-    { href: '/dashboard/company-news',   label: 'Company News',     icon: Megaphone },
+    { href: '/dashboard/my-workspace', label: 'My Workspace', icon: LayoutGrid },
+    { href: '/dashboard/tickets', label: 'Service Requests', icon: Ticket },
+    { href: '/dashboard/approvals', label: 'Approvals', icon: GitBranch },
+    { href: '/dashboard/time-tracking', label: 'Time Tracking', icon: Clock },
+    { href: '/dashboard/bugs', label: 'Bug Tracker', icon: Bug },
+    { href: '/dashboard/workload', label: 'Resource Mgmt', icon: UserCheck },
+    { href: '/dashboard/knowledge-base', label: 'Knowledge Base', icon: BookOpen },
+    { href: '/dashboard/company-news', label: 'Company News', icon: Megaphone },
 ];
 
 const insightsNav = [
-    { href: '/dashboard/analytics', label: 'Analytics',    icon: BarChart2 },
-    { href: '/dashboard/reports',   label: 'Reports',      icon: FileText },
-    { href: '/dashboard/calendar',  label: 'Calendar',     icon: Calendar },
-    { href: '/dashboard/search',    label: 'Search',       icon: Search },
-    { href: '/dashboard/audit',     label: 'Activity Log', icon: Activity },
+    { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart2 },
+    { href: '/dashboard/reports', label: 'Reports', icon: FileText },
+    { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
+    { href: '/dashboard/search', label: 'Search', icon: Search },
+    { href: '/dashboard/audit', label: 'Activity Log', icon: Activity },
 ];
 
 const systemNav = [
-    { href: '/dashboard/settings',           label: 'Settings',           icon: Settings },
-    { href: '/dashboard/admin',              label: 'Admin Panel',         icon: Shield },
-    { href: '/dashboard/employee-management',label: 'Employee Management', icon: UserCog },
-    { href: '/dashboard/client-management',  label: 'Client Management',   icon: Users },
+    { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+    { href: '/dashboard/admin', label: 'Admin Panel', icon: Shield },
+    { href: '/dashboard/employee-management', label: 'Employee Management', icon: UserCog },
+    { href: '/dashboard/client-management', label: 'Client Management', icon: Users },
 ];
 
 interface SidebarProps {
@@ -66,7 +66,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         exact ? pathname === href : pathname === href || pathname?.startsWith(href + '/');
 
     const handleLogout = async () => {
-        try { await callLogout(); } catch {}
+        try { await callLogout(); } catch { }
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         router.push('/login');
@@ -134,7 +134,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
                 {/* Quick Action (Jira Create) */}
                 <div className="px-3 mb-6">
-                    <button 
+                    <button
                         className={cn(
                             "w-full h-10 rounded-[3px] bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors group",
                             isCollapsed ? "px-0" : "px-4 gap-2"
@@ -163,13 +163,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
                     <SectionLabel label="System" />
                     {systemNav
-                      .filter(item => {
-                        if (item.href === '/dashboard/admin') return userRole === 'ADMIN';
-                        if (item.href === '/dashboard/employee-management') return ['MANAGER', 'ADMIN'].includes(userRole);
-                        if (item.href === '/dashboard/client-management') return ['MANAGER', 'ADMIN'].includes(userRole);
-                        return true;
-                      })
-                      .map(item => <NavItem key={item.href} item={item} />)}
+                        .filter(item => {
+                            if (item.href === '/dashboard/admin') return userRole === 'ADMIN';
+                            if (item.href === '/dashboard/employee-management') return ['MANAGER', 'ADMIN'].includes(userRole);
+                            if (item.href === '/dashboard/client-management') return ['MANAGER', 'ADMIN'].includes(userRole);
+                            return true;
+                        })
+                        .map(item => <NavItem key={item.href} item={item} />)}
                 </nav>
 
                 {/* Collapse Toggle & Logout */}
@@ -181,7 +181,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                         {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
                         {!isCollapsed && <span>Collapse sidebar</span>}
                     </button>
-                    
+
                     <button
                         onClick={handleLogout}
                         className="flex items-center gap-3 px-3 py-2 w-full rounded-[3px] text-[14px] font-medium text-[var(--sidebar-text)] hover:bg-red-500/20 hover:text-red-400 transition-colors"

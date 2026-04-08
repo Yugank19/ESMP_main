@@ -563,7 +563,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Toggle label="Peer Invites" desc="Allow team units to initialize peer recrutiment" value={teamSettings['allow_member_invite'] === 'true'}
+                    <Toggle label="Peer Invites" desc="Allow team units to start peer recruitment" value={teamSettings['allow_member_invite'] === 'true'}
                       onChange={(v: boolean) => setTeamSettings(s => ({ ...s, allow_member_invite: String(v) }))} />
                     <Toggle label="Join Authentication" desc="Require sector leader authorization for new links" value={teamSettings['require_approval'] === 'true'}
                       onChange={(v: boolean) => setTeamSettings(s => ({ ...s, require_approval: String(v) }))} />

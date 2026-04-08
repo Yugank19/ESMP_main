@@ -119,7 +119,7 @@ export default function MeetingNotes({ teamId, currentUser, isLeader, members }:
                         <div className="flex items-center gap-2">
                             <BookOpen className="h-3.5 w-3.5 text-[var(--color-primary)]" />
                             <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest">
-                                {editingId ? 'Modify Discovery Record' : 'Initialize Meeting Discovery'}
+                                {editingId ? 'Modify Discovery Record' : 'Create Meeting Note'}
                             </span>
                         </div>
                         <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-[var(--color-primary)]">

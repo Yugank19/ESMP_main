@@ -113,16 +113,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             {/* Breadcrumbs */}
-            <nav className="flex items-center text-sm font-medium text-[var(--text-secondary)]">
-              <Link href="/dashboard" className="hover:text-[var(--color-primary)] transition-colors">ESMP</Link>
-              {pathSegments.slice(1).map((seg, idx) => (
-                <div key={idx} className="flex items-center uppercase tracking-wider text-[10px] ml-2">
-                  <ChevronRight className="h-3 w-3 mx-1 text-[var(--text-muted)]" />
-                  <span className={cn(idx === pathSegments.length - 2 ? "text-[var(--text-primary)] font-bold" : "")}>
-                    {seg.replace(/-/g, " ")}
-                  </span>
-                </div>
-              ))}
+            <nav className="flex items-center text-sm font-medium text-[var(--text-secondary)] min-w-0">
+              <Link href="/dashboard" className="hover:text-[var(--color-primary)] transition-colors shrink-0">ESMP</Link>
+              <div className="flex items-center overflow-hidden">
+                {pathSegments.slice(1).map((seg, idx) => (
+                  <div key={idx} className="flex items-center uppercase tracking-wider text-[10px] min-w-0">
+                    <ChevronRight className="h-3 w-3 mx-1 text-[var(--text-muted)] shrink-0" />
+                    <span className={cn(
+                      "truncate",
+                      idx === pathSegments.length - 2 ? "text-[var(--text-primary)] font-bold" : ""
+                    )}>
+                      {seg.replace(/-/g, " ")}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </nav>
           </div>
 
@@ -164,7 +169,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Workspace */}
         <main className="flex-1 overflow-y-auto no-scrollbar">
-          <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
+          <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto animate-in fade-in duration-500">
             {children}
           </div>
         </main>

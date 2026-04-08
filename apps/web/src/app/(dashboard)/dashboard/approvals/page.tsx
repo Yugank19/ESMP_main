@@ -93,7 +93,7 @@ export default function ApprovalsPage() {
         </div>
         <button onClick={() => setShowCreate(true)}
           className="jira-button jira-button-primary h-12 px-8 gap-3 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">
-          <Plus className="h-4 w-4" /> Initialize Request
+          <Plus className="h-4 w-4" /> New Request
         </button>
       </div>
 

@@ -36,13 +36,34 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { roomId: string; senderId: string; body: string },
     @ConnectedSocket() client: Socket,
   ) {
+    // Verify membership
+    const membership = await this.prisma.roomMember.findUnique({
+      where: {
+        room_id_user_id: { room_id: data.roomId, user_id: data.senderId },
+      },
+    });
+
+    if (!membership) {
+      return { error: 'Not a member of this room' };
+    }
+
     const message = await this.prisma.message.create({
       data: {
         room_id: data.roomId,
         sender_id: data.senderId,
         body: data.body,
       },
-      include: { sender: true },
+      include: { 
+        sender: {
+          select: { id: true, name: true, avatar_url: true }
+        } 
+      },
+    });
+
+    // Update room updated_at
+    await this.prisma.room.update({
+      where: { id: data.roomId },
+      data: { updated_at: new Date() }
     });
 
     // Broadcast to people in the room
@@ -51,11 +72,43 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joinRoom')
-  handleJoinRoom(
-    @MessageBody() roomId: string,
+  async handleJoinRoom(
+    @MessageBody() data: { roomId: string; userId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    client.join(roomId);
-    return { room: roomId };
+    const membership = await this.prisma.roomMember.findUnique({
+      where: { room_id_user_id: { room_id: data.roomId, user_id: data.userId } },
+    });
+    if (membership) { client.join(data.roomId); return { room: data.roomId }; }
+    return { error: 'Forbidden' };
+  }
+
+  @SubscribeMessage('deleteMessage')
+  async handleDeleteMessage(
+    @MessageBody() data: { messageId: string; roomId: string; userId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const msg = await this.prisma.message.findUnique({ where: { id: data.messageId } });
+    if (!msg || msg.sender_id !== data.userId) return { error: 'Forbidden' };
+    await this.prisma.message.delete({ where: { id: data.messageId } });
+    this.server.to(data.roomId).emit('messageDeleted', { messageId: data.messageId, room_id: data.roomId });
+    return { deleted: true };
+  }
+
+  @SubscribeMessage('editMessage')
+  async handleEditMessage(
+    @MessageBody() data: { messageId: string; roomId: string; userId: string; body: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const msg = await this.prisma.message.findUnique({ where: { id: data.messageId } });
+    if (!msg || msg.sender_id !== data.userId) return { error: 'Forbidden' };
+    const updated = await this.prisma.message.update({
+      where: { id: data.messageId },
+      data: { body: data.body.trim(), attachments: { ...(msg.attachments as any || {}), edited: true } },
+      include: { sender: { select: { id: true, name: true, avatar_url: true } } },
+    });
+    this.server.to(data.roomId).emit('messageEdited', updated);
+    return updated;
   }
 }
+

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { 
-    Briefcase, CheckSquare, AlertCircle, Users, ArrowUpRight, 
-    BarChart2, Calendar, FileText, Activity, TrendingUp, 
+import {
+    Briefcase, CheckSquare, AlertCircle, Users, ArrowUpRight,
+    BarChart2, Calendar, FileText, Activity, TrendingUp,
     Clock, CheckCircle2, ListTodo, Plus, Globe, Shield, Settings
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -30,7 +30,7 @@ export default function DashboardPage() {
         try {
             const g = await getGlobalAnalytics();
             setAnalytics(g);
-        } catch {}
+        } catch { }
 
         try {
             const token = localStorage.getItem('token');
@@ -45,7 +45,7 @@ export default function DashboardPage() {
                 const acts = await actRes.json();
                 setRecentActivity(Array.isArray(acts) ? acts.slice(0, 10) : []);
             }
-        } catch {}
+        } catch { }
         finally { setLoading(false); }
     }
 
@@ -61,35 +61,35 @@ export default function DashboardPage() {
 
     // Summary Cards Configuration
     const summaryCards = [
-        { 
-            label: 'In Progress', 
-            count: analytics?.pendingTasks ?? 0, 
-            icon: Clock, 
-            color: 'text-blue-600', 
+        {
+            label: 'In Progress',
+            count: analytics?.pendingTasks ?? 0,
+            icon: Clock,
+            color: 'text-blue-600',
             bg: 'bg-blue-50',
             link: '/dashboard/tasks?status=IN_PROGRESS'
         },
-        { 
-            label: 'Due Soon', 
-            count: analytics?.overdueTasks ?? 0, 
-            icon: AlertCircle, 
-            color: 'text-amber-600', 
+        {
+            label: 'Due Soon',
+            count: analytics?.overdueTasks ?? 0,
+            icon: AlertCircle,
+            color: 'text-amber-600',
             bg: 'bg-amber-50',
             link: '/dashboard/tasks?filter=upcoming'
         },
-        { 
-            label: 'Completed', 
-            count: analytics?.completedTasks ?? 0, 
-            icon: CheckCircle2, 
-            color: 'text-green-600', 
+        {
+            label: 'Completed',
+            count: analytics?.completedTasks ?? 0,
+            icon: CheckCircle2,
+            color: 'text-green-600',
             bg: 'bg-green-50',
             link: '/dashboard/tasks?status=DONE'
         },
-        { 
-            label: 'Total Scope', 
-            count: analytics?.totalTasks ?? 0, 
-            icon: ListTodo, 
-            color: 'text-[var(--text-primary)]', 
+        {
+            label: 'Total Scope',
+            count: analytics?.totalTasks ?? 0,
+            icon: ListTodo,
+            color: 'text-[var(--text-primary)]',
             bg: 'bg-slate-50',
             link: '/dashboard/tasks'
         },
@@ -100,16 +100,16 @@ export default function DashboardPage() {
             {/* Welcome Header */}
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[var(--border)] pb-6">
                 <div>
-                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-bold mb-2">
-                    <Globe className="h-3 w-3" />
-                    <span>Global Workspace</span>
-                  </div>
-                  <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">
-                    Good day, {user.name.split(' ')[0]}!
-                  </h1>
-                  <p className="text-[var(--text-secondary)] mt-1.5 font-medium">
-                    Here is what's happening across your teams today.
-                  </p>
+                    <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-bold mb-2">
+                        <Globe className="h-3 w-3" />
+                        <span>Global Workspace</span>
+                    </div>
+                    <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">
+                        Good day, {user.name.split(' ')[0]}!
+                    </h1>
+                    <p className="text-[var(--text-secondary)] mt-1.5 font-medium">
+                        Here is what's happening across your teams today.
+                    </p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Link href="/dashboard/tasks?action=create" className="jira-button jira-button-primary gap-2 h-9">
@@ -195,42 +195,42 @@ export default function DashboardPage() {
                         </div>
                         <div className="p-5 space-y-4">
                             {role === 'MANAGER' || role === 'ADMIN' ? (
-                              <>
-                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                  You are managing <span className="font-bold text-[var(--text-primary)]">{analytics?.totalTeams || 0} teams</span>. 
-                                  Overall task velocity is at <span className="font-bold text-green-600">{analytics?.completionRate || 0}%</span>.
-                                </p>
-                                <div className="space-y-2">
-                                    <Link href="/dashboard/approvals" className="flex items-center justify-between p-3 rounded-[3px] bg-[var(--bg-base)] hover:bg-[var(--bg-surface-2)] transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <Shield className="h-4 w-4 text-[var(--color-primary)]" />
-                                            <span className="text-xs font-bold text-[var(--text-primary)]">Pending Approvals</span>
-                                        </div>
-                                        <ArrowUpRight className="h-4 w-4 text-[var(--text-muted)]" />
-                                    </Link>
-                                    <Link href="/dashboard/reports" className="flex items-center justify-between p-3 rounded-[3px] bg-[var(--bg-base)] hover:bg-[var(--bg-surface-2)] transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <FileText className="h-4 w-4 text-[var(--color-primary)]" />
-                                            <span className="text-xs font-bold text-[var(--text-primary)]">Team Performance</span>
-                                        </div>
-                                        <ArrowUpRight className="h-4 w-4 text-[var(--text-muted)]" />
-                                    </Link>
-                                </div>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                  You have <span className="font-bold text-amber-600">{analytics?.pendingTasks || 0} items</span> in your backlog. 
-                                  Keep up the momentum!
-                                </p>
-                                <Link href="/dashboard/my-workspace" className="flex items-center justify-between p-3 rounded-[3px] bg-[var(--bg-base)] hover:bg-[var(--bg-surface-2)] transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <Briefcase className="h-4 w-4 text-[var(--color-primary)]" />
-                                        <span className="text-xs font-bold text-[var(--text-primary)]">Personal Workspace</span>
+                                <>
+                                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                                        You are managing <span className="font-bold text-[var(--text-primary)]">{analytics?.totalTeams || 0} teams</span>.
+                                        Overall task velocity is at <span className="font-bold text-green-600">{analytics?.completionRate || 0}%</span>.
+                                    </p>
+                                    <div className="space-y-2">
+                                        <Link href="/dashboard/approvals" className="flex items-center justify-between p-3 rounded-[3px] bg-[var(--bg-base)] hover:bg-[var(--bg-surface-2)] transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <Shield className="h-4 w-4 text-[var(--color-primary)]" />
+                                                <span className="text-xs font-bold text-[var(--text-primary)]">Pending Approvals</span>
+                                            </div>
+                                            <ArrowUpRight className="h-4 w-4 text-[var(--text-muted)]" />
+                                        </Link>
+                                        <Link href="/dashboard/reports" className="flex items-center justify-between p-3 rounded-[3px] bg-[var(--bg-base)] hover:bg-[var(--bg-surface-2)] transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <FileText className="h-4 w-4 text-[var(--color-primary)]" />
+                                                <span className="text-xs font-bold text-[var(--text-primary)]">Team Performance</span>
+                                            </div>
+                                            <ArrowUpRight className="h-4 w-4 text-[var(--text-muted)]" />
+                                        </Link>
                                     </div>
-                                    <ArrowUpRight className="h-4 w-4 text-[var(--text-muted)]" />
-                                </Link>
-                              </>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                                        You have <span className="font-bold text-amber-600">{analytics?.pendingTasks || 0} items</span> in your backlog.
+                                        Keep up the momentum!
+                                    </p>
+                                    <Link href="/dashboard/my-workspace" className="flex items-center justify-between p-3 rounded-[3px] bg-[var(--bg-base)] hover:bg-[var(--bg-surface-2)] transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <Briefcase className="h-4 w-4 text-[var(--color-primary)]" />
+                                            <span className="text-xs font-bold text-[var(--text-primary)]">Personal Workspace</span>
+                                        </div>
+                                        <ArrowUpRight className="h-4 w-4 text-[var(--text-muted)]" />
+                                    </Link>
+                                </>
                             )}
                         </div>
                     </div>
