@@ -30,25 +30,26 @@
   --scrollbar:      #C1C7D0;
 }
 
-/* ── Dark mode (Jira-inspired dark) ─────────────────────────────────────── */
+/* ── Dark mode (True Black Theme) ─────────────────────────────────────────── */
 .dark {
-  --bg-base:        #091E42;
-  --bg-surface:     #1D2125;
-  --bg-surface-2:   #22272B;
-  --bg-surface-3:   #2C333A;
-  --text-primary:   #B3D4FF;
-  --text-secondary: #97A0AF;
-  --text-muted:     #7A869A;
-  --border:         #334155;
-  --border-strong:  #475569;
-  --sidebar-bg:     #091E42;
-  --sidebar-text:   #8C9BAB;
-  --sidebar-active: #4C9AFF;
-  --header-bg:      #1D2125;
-  --card-bg:        #21262B;
-  --input-bg:       #22272B;
-  --input-focus:    #1D2125;
-  --scrollbar:      #334155;
+  --bg-base:        #000000;  /* Pure Black Background */
+  --bg-surface:     #09090b;  /* Zinc-950 Surface */
+  --bg-surface-2:   #18181b;  /* Zinc-900 */
+  --bg-surface-3:   #27272a;  /* Zinc-800 */
+  --text-primary:   #fafafa;  /* Zinc-50 White Text */
+  --text-secondary: #a1a1aa;  /* Zinc-400 Neutral Grey */
+  --text-muted:     #71717a;  /* Zinc-500 Muted */
+  --border:         #27272a;  /* Zinc-800 Neutral Borders */
+  --border-strong:  #3f3f46;  /* Zinc-700 Stronger Borders */
+  --sidebar-bg:     #000000;  /* Pure Black Sidebar */
+  --sidebar-text:   #a1a1aa;  /* Zinc-400 Sidebar Text */
+  --sidebar-active: #ffffff;  /* Pure White Active Link */
+  --header-bg:      #000000;
+  --card-bg:        #09090b;
+  --input-bg:       #09090b;
+  --input-focus:    #000000;
+  --scrollbar:      #3f3f46;
+  --sidebar-hover:  rgba(255,255,255,0.05);
 }
 
 * { box-sizing: border-box; }

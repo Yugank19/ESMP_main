@@ -10,8 +10,8 @@ import api from '@/lib/api';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-const inputClass = "w-full pl-12 pr-4 py-3 md:py-4 bg-white border border-slate-200 rounded-[3px] text-sm font-bold text-slate-900 placeholder:text-slate-200 outline-none focus:border-blue-500 shadow-sm transition-all uppercase tracking-tight";
-const labelClass = "text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 block pl-1";
+const inputClass = "w-full pl-12 pr-4 py-2.5 md:py-3 bg-white/95 border border-slate-200 rounded-[3px] text-sm font-bold text-slate-900 placeholder:text-slate-300 outline-none focus:border-blue-500 shadow-sm transition-all uppercase tracking-tight";
+const labelClass = "text-[10px] font-black text-slate-300 md:text-slate-400 uppercase tracking-[0.2em] mb-2 block pl-1";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -46,26 +46,26 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="w-full space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="w-full space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
             {/* Mission Entry Header */}
-            <div className="space-y-4">
-                <div className="inline-flex items-center gap-2.5 bg-blue-50/50 text-blue-600 text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-[2px] border border-blue-100 shadow-sm">
+            <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-blue-500/10 md:bg-blue-50/50 border border-blue-400/20 md:border-blue-100 text-blue-400 md:text-blue-600 text-[9px] font-black uppercase tracking-[0.2em]">
                     <Fingerprint className="h-3 w-3" />
                     Secure_Access_Hub_V5
                 </div>
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tighter leading-none uppercase">
+                    <h1 className="text-2xl md:text-3xl font-black text-white md:text-slate-900 tracking-tighter leading-none uppercase">
                         Enterprise<br />
                         Registry Login
                     </h1>
-                    <p className="text-slate-400 text-[10px] uppercase font-black tracking-widest mt-3 flex items-center gap-2">
-                        <Activity className="h-3 w-3 text-emerald-500" /> System_Online: Enter personnel credentials
+                    <p className="text-slate-300 md:text-slate-400 text-[9px] md:text-[10px] uppercase font-black tracking-widest mt-2 flex items-center gap-2">
+                        <Activity className="h-3 w-3 text-emerald-400 md:text-emerald-500" /> System_Online: Enter personnel credentials
                     </p>
                 </div>
             </div>
 
             {/* Auth Terminal Form */}
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-5">
                 {error && (
                     <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-[3px] text-[10px] font-black uppercase tracking-widest animate-in shake duration-500 flex items-center gap-3 shadow-md shadow-red-100/50">
                         <Info className="h-4 w-4 shrink-0" />
@@ -117,7 +117,7 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-[3px] transition-all disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(37,99,235,0.3)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.4)] active:scale-[0.97] group border-b-4 border-blue-800"
+                    className="w-full h-12 md:h-14 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-[3px] transition-all disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(37,99,235,0.3)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.4)] active:scale-[0.97] group border-b-4 border-blue-800"
                 >
                     {loading ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -128,12 +128,12 @@ export default function LoginPage() {
             </form>
 
             {/* Tactical Divider */}
-            <div className="relative py-4">
+            <div className="relative py-2">
                 <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-100" />
+                    <div className="w-full border-t border-white/10 md:border-slate-100" />
                 </div>
                 <div className="relative flex justify-center">
-                    <span className="bg-white px-6 text-[9px] text-slate-300 font-black uppercase tracking-[0.4em]">
+                    <span className="bg-transparent md:bg-white px-6 text-[9px] text-white/40 md:text-slate-300 font-black uppercase tracking-[0.4em]">
                         OR
                     </span>
                 </div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
 
             <Link
                 href="/register"
-                className="w-full h-12 border-2 border-slate-50 bg-slate-50/50 hover:bg-white hover:border-blue-100 text-slate-500 hover:text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] rounded-[3px] transition-all flex items-center justify-center gap-3 shadow-inner hover:shadow-lg group"
+                className="w-full h-11 border-2 border-white/10 md:border-slate-50 bg-white/5 md:bg-slate-50/50 hover:bg-white/10 md:hover:bg-white text-white/60 md:text-slate-500 hover:text-white md:hover:text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] rounded-[3px] transition-all flex items-center justify-center gap-3 group"
             >
                 <Fingerprint className="h-4 w-4 group-hover:rotate-12 transition-transform" /> Register_New_Personnel
             </Link>

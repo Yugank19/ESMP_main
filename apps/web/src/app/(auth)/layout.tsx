@@ -21,11 +21,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
             {/* Enterprise Access Terminal Card */}
             <div
-                className="relative z-10 w-full max-w-5xl flex rounded-[4px] overflow-hidden shadow-[0_48px_128px_rgba(0,0,0,0.8)] border border-white/5 bg-slate-900/40 backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-1000"
-                style={{ minHeight: 'clamp(500px, 80vh, 680px)' }}
+                className="relative z-10 w-full max-w-4xl flex rounded-[4px] overflow-hidden shadow-[0_48px_128px_rgba(0,0,0,0.8)] border border-white/5 bg-slate-900/40 backdrop-blur-3xl animate-in fade-in zoom-in-95 duration-1000"
+                style={{ minHeight: 'clamp(450px, 75vh, 600px)' }}
             >
                 {/* Left Sector: Strategic Overview */}
-                <div className="hidden lg:flex lg:w-[45%] bg-slate-950/40 flex-col justify-between p-14 relative overflow-hidden border-r border-white/5">
+                <div className="hidden lg:flex lg:w-[45%] bg-slate-950/40 flex-col justify-between p-12 relative overflow-hidden border-r border-white/5">
                     <div className="absolute inset-0 bg-gradient-to-b from-blue-600/5 via-transparent to-slate-950/60 pointer-events-none" />
 
                     {/* Logo Segment */}
@@ -44,59 +44,58 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                     </div>
 
                     {/* Core Messaging Hub */}
-                    <div className="relative z-10 space-y-8">
+                    <div className="relative z-10 space-y-6">
                         <div className="space-y-4">
                             <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-[2px] bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">
                                 <Zap className="h-3 w-3 fill-blue-500/20" /> MISSION_CRITICAL_READY
                             </div>
-                            <h2 className="text-[2.75rem] font-black text-white leading-[1.05] tracking-tight uppercase">
+                            <h2 className="text-[2.25rem] font-black text-white leading-[1.05] tracking-tight uppercase">
                                 Strategic<br />
                                 Workflow<br />
                                 <span className="text-blue-600">Optimization.</span>
                             </h2>
                         </div>
-                        <p className="text-slate-400 text-sm font-bold uppercase tracking-wide leading-relaxed max-w-xs opacity-70">
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wide leading-relaxed max-w-xs opacity-70">
                             Unified terminal for project intelligence, task synchronization, and sector-wide approvals.
                         </p>
 
                         {/* Tactical Segments */}
-                        <div className="flex flex-wrap gap-2 pt-4">
-                            {['PROJECTS', 'TASKS', 'TEAMS', 'REPORTS', 'GOVERNANCE'].map(f => (
-                                <div key={f} className="px-4 py-2 rounded-[2px] bg-white/5 text-white/40 text-[9px] font-black border border-white/5 hover:border-blue-500/30 hover:text-blue-400 hover:bg-blue-500/5 transition-all cursor-default uppercase tracking-widest">
+                        <div className="flex flex-wrap gap-2 pt-2">
+                            {['PROJECTS', 'TASKS', 'TEAMS'].map(f => (
+                                <div key={f} className="px-3 py-1.5 rounded-[2px] bg-white/5 text-white/40 text-[8px] font-black border border-white/5 hover:border-blue-500/30 hover:text-blue-400 transition-all cursor-default uppercase tracking-widest">
                                     {f}
                                 </div>
                             ))}
                         </div>
 
                         {/* Heuristic Stats */}
-                        <div className="flex gap-12 pt-8 border-t border-white/5">
+                        <div className="flex gap-8 pt-6 border-t border-white/5">
                             {[
                                 { val: '1.2K+', lbl: 'UNITS', icon: Globe },
-                                { val: '99.9%', lbl: 'UPTIME', icon: Activity },
-                                { val: 'IV_LVL', lbl: 'AUTH', icon: Shield }
+                                { val: '99.9%', lbl: 'UPTIME', icon: Activity }
                             ].map(({ val, lbl, icon: Icon }) => (
-                                <div key={lbl} className="space-y-1.5">
+                                <div key={lbl} className="space-y-1">
                                     <div className="flex items-center gap-2 text-white/30">
                                         <Icon className="h-3 w-3 text-blue-500/40" />
-                                        <p className="text-[9px] font-black uppercase tracking-widest">{lbl}</p>
+                                        <p className="text-[8px] font-black uppercase tracking-widest">{lbl}</p>
                                     </div>
-                                    <p className="text-white font-black text-xl tabular-nums tracking-tighter">{val}</p>
+                                    <p className="text-white font-black text-lg tabular-nums tracking-tighter">{val}</p>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Registry Footer */}
-                    <div className="relative z-10 flex items-center gap-3 text-slate-600 text-[9px] font-black tracking-[0.2em] transition-opacity hover:opacity-100 uppercase">
+                    <div className="relative z-10 flex items-center gap-3 text-slate-600 text-[8px] font-black tracking-[0.2em] transition-opacity hover:opacity-100 uppercase">
                         <Terminal className="h-3 w-3" /> © 2026 ESMP_PROTOCOLS_V5
                     </div>
                 </div>
 
                 {/* Right Sector: Authentication Hub */}
-                <div className="flex-1 flex items-center justify-center bg-white/80 md:bg-white/95 backdrop-blur-2xl px-6 py-12 md:px-16 md:py-16 relative overflow-hidden">
+                <div className="flex-1 flex items-center justify-center bg-transparent md:bg-white/95 backdrop-blur-xl md:backdrop-blur-2xl px-6 py-10 md:px-14 md:py-14 relative overflow-hidden">
                     {/* Subtle Sector ID background */}
                     <div className="absolute top-10 right-10 opacity-[0.03] pointer-events-none select-none">
-                        <Lock className="h-64 w-64 text-slate-900" />
+                        <Lock className="h-48 w-48 text-white md:text-slate-900" />
                     </div>
 
                     <div className="w-full max-w-sm relative z-10">
