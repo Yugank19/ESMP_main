@@ -96,4 +96,28 @@ export class TeamsController {
     regenerateCode(@Param('id') id: string, @Request() req: any) {
         return this.teamsService.regenerateInviteCode(id, req.user.id);
     }
+
+    // ── MANAGER ADD-ON ENDPOINTS (read-only visibility + assignment) ──────────
+
+    @Get('manager/all')
+    @ApiOperation({ summary: 'Manager: Get all teams with client mapping' })
+    getAllTeamsForManager(@Request() req: any) {
+        return this.teamsService.findAllTeamsForManager(req.user.id);
+    }
+
+    @Get('manager/mapping')
+    @ApiOperation({ summary: 'Manager: Get team-client mapping overview' })
+    getTeamClientMapping(@Request() req: any) {
+        return this.teamsService.getTeamClientMapping(req.user.id);
+    }
+
+    @Patch('manager/assign-project')
+    @ApiOperation({ summary: 'Manager: Assign client project to a team' })
+    assignProjectToTeam(
+        @Request() req: any,
+        @Body('projectId') projectId: string,
+        @Body('teamId') teamId: string | null,
+    ) {
+        return this.teamsService.assignClientProjectToTeam(req.user.id, projectId, teamId);
+    }
 }

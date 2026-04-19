@@ -2,6 +2,8 @@ import { Injectable, ForbiddenException, NotFoundException, BadRequestException,
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import * as bcrypt from 'bcryptjs';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @Injectable()
 export class ClientPortalService {
@@ -202,5 +204,120 @@ export class ClientPortalService {
       data: { user_id: project.manager_id, type: 'CLIENT_FEEDBACK', payload: { project_id: projectId, message: `Client feedback: ${body.slice(0, 80)}` } },
     });
     return fb;
+  }
+
+  // ── Client: Get notifications ─────────────────────────────────────────────────
+  async getClientNotifications(clientId: string) {
+    await this.assertClient(clientId);
+    return this.prisma.notification.findMany({
+      where: { user_id: clientId },
+      orderBy: { created_at: 'desc' },
+      take: 50,
+    });
+  }
+
+  async markNotificationRead(notifId: string, clientId: string) {
+    await this.assertClient(clientId);
+    return this.prisma.notification.updateMany({
+      where: { id: notifId, user_id: clientId },
+      data: { read: true },
+    });
+  }
+
+  async markAllNotificationsRead(clientId: string) {
+    await this.assertClient(clientId);
+    return this.prisma.notification.updateMany({
+      where: { user_id: clientId, read: false },
+      data: { read: true },
+    });
+  }
+
+  // ── Client: Get project activity feed ────────────────────────────────────────
+  async getProjectActivity(projectId: string, clientId: string) {
+    await this.assertClient(clientId);
+    const project = await this.prisma.clientProject.findUnique({ where: { id: projectId } });
+    if (!project || project.client_id !== clientId) throw new ForbiddenException('Access denied');
+
+    const [deliverables, milestones, feedback] = await Promise.all([
+      this.prisma.clientDeliverable.findMany({
+        where: { project_id: projectId },
+        include: { uploader: { select: { id: true, name: true, avatar_url: true } } },
+        orderBy: { created_at: 'desc' }, take: 20,
+      }),
+      this.prisma.clientMilestone.findMany({
+        where: { project_id: projectId },
+        orderBy: { created_at: 'desc' }, take: 20,
+      }),
+      this.prisma.clientFeedback.findMany({
+        where: { project_id: projectId },
+        include: { author: { select: { id: true, name: true, avatar_url: true } } },
+        orderBy: { created_at: 'desc' }, take: 20,
+      }),
+    ]);
+
+    const activity = [
+      ...deliverables.map(d => ({ type: 'DELIVERABLE', action: `Deliverable "${d.title}" submitted`, actor: d.uploader, date: d.created_at, status: d.status, id: d.id })),
+      ...milestones.map(m => ({ type: 'MILESTONE', action: `Milestone "${m.title}" — ${m.status}`, actor: null, date: m.created_at, status: m.status, id: m.id })),
+      ...feedback.map(f => ({ type: 'FEEDBACK', action: f.type === 'CHANGE_REQUEST' ? `Change request: ${f.body.slice(0, 60)}` : `Comment: ${f.body.slice(0, 60)}`, actor: f.author, date: f.created_at, status: f.type, id: f.id })),
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 30);
+
+    return activity;
+  }
+
+  // ── Client: Get project report ────────────────────────────────────────────────
+  async getProjectReport(projectId: string, clientId: string) {
+    await this.assertClient(clientId);
+    const project = await this.prisma.clientProject.findUnique({
+      where: { id: projectId },
+      include: {
+        deliverables: true,
+        milestones: true,
+        feedback: { include: { author: { select: { id: true, name: true } } } },
+        manager: { select: { id: true, name: true, email: true } },
+      },
+    });
+    if (!project || project.client_id !== clientId) throw new ForbiddenException('Access denied');
+
+    const totalMilestones = project.milestones.length;
+    const completedMilestones = project.milestones.filter(m => m.status === 'COMPLETED').length;
+    const totalDeliverables = project.deliverables.length;
+    const approvedDeliverables = project.deliverables.filter(d => d.status === 'APPROVED').length;
+    const pendingDeliverables = project.deliverables.filter(d => d.status === 'PENDING_REVIEW').length;
+    const changeRequests = project.feedback.filter(f => f.type === 'CHANGE_REQUEST').length;
+    const progressPct = totalMilestones > 0 ? Math.round((completedMilestones / totalMilestones) * 100) : 0;
+
+    return {
+      project: { id: project.id, name: project.project_name, company: project.company_name, status: project.status, description: project.description, manager: project.manager, created_at: project.created_at },
+      summary: { totalMilestones, completedMilestones, progressPct, totalDeliverables, approvedDeliverables, pendingDeliverables, changeRequests },
+      milestones: project.milestones,
+      deliverables: project.deliverables,
+      recentFeedback: project.feedback.slice(0, 10),
+    };
+  }
+
+  // ── Client: Update profile ────────────────────────────────────────────────────
+  async updateClientProfile(clientId: string, dto: { name?: string; phone?: string; organization?: string; bio?: string }) {
+    await this.assertClient(clientId);
+    return this.prisma.user.update({
+      where: { id: clientId },
+      data: dto,
+      select: { id: true, name: true, email: true, phone: true, organization: true, bio: true, avatar_url: true },
+    });
+  }
+
+  // ── Manager: Update milestone status ─────────────────────────────────────────
+  async updateMilestone(milestoneId: string, managerId: string, dto: any) {
+    await this.assertManagerOrAdmin(managerId);
+    const milestone = await this.prisma.clientMilestone.findUnique({ where: { id: milestoneId }, include: { project: true } });
+    if (!milestone || milestone.project.manager_id !== managerId) throw new ForbiddenException('Not authorized');
+    return this.prisma.clientMilestone.update({ where: { id: milestoneId }, data: dto });
+  }
+
+  // ── Manager: Delete deliverable ───────────────────────────────────────────────
+  async deleteDeliverable(deliverableId: string, managerId: string) {
+    await this.assertManagerOrAdmin(managerId);
+    const d = await this.prisma.clientDeliverable.findUnique({ where: { id: deliverableId }, include: { project: true } });
+    if (!d || d.project.manager_id !== managerId) throw new ForbiddenException('Not authorized');
+    return this.prisma.clientDeliverable.delete({ where: { id: deliverableId } });
   }
 }

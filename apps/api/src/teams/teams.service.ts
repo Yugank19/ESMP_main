@@ -311,6 +311,167 @@ export class TeamsService {
         return { invite_code: team.invite_code };
     }
 
+    // ── MANAGER ADD-ON: Get all teams visible to manager ─────────────────────
+    async findAllTeamsForManager(managerId: string) {
+        // Verify manager/admin role
+        const roles = await this.prisma.userRole.findMany({ where: { user_id: managerId }, include: { role: true } });
+        const roleNames = roles.map(r => r.role.name.toUpperCase());
+        if (!roleNames.some(r => ['MANAGER', 'ADMIN'].includes(r))) {
+            throw new ForbiddenException('Manager access required');
+        }
+
+        // Get all active teams (manager can see all, not just ones they're in)
+        const teams = await this.prisma.team.findMany({
+            where: { status: 'ACTIVE' },
+            include: {
+                members: {
+                    where: { status: 'ACTIVE' },
+                    include: { user: { select: { id: true, name: true, email: true, avatar_url: true } } },
+                },
+                tasks: {
+                    select: { id: true, status: true, priority: true, title: true },
+                    take: 10,
+                    orderBy: { updated_at: 'desc' },
+                },
+                activity: {
+                    include: { user: { select: { id: true, name: true } } },
+                    orderBy: { created_at: 'desc' },
+                    take: 5,
+                },
+                _count: { select: { members: true, tasks: true } },
+            },
+            orderBy: { created_at: 'desc' },
+        });
+
+        // Attach client projects assigned to each team
+        const clientProjects = await this.prisma.clientProject.findMany({
+            where: { team_id: { not: null } },
+            include: {
+                client: { select: { id: true, name: true, email: true, organization: true } },
+                deliverables: { select: { id: true, status: true } },
+                milestones: { select: { id: true, status: true } },
+            },
+        });
+
+        const projectsByTeam = new Map<string, any[]>();
+        clientProjects.forEach(p => {
+            if (p.team_id) {
+                if (!projectsByTeam.has(p.team_id)) projectsByTeam.set(p.team_id, []);
+                projectsByTeam.get(p.team_id)!.push(p);
+            }
+        });
+
+        return teams.map(t => ({
+            ...t,
+            clientProjects: projectsByTeam.get(t.id) || [],
+            taskStats: {
+                total: t.tasks.length,
+                todo: t.tasks.filter((tk: any) => tk.status === 'TODO').length,
+                inProgress: t.tasks.filter((tk: any) => tk.status === 'IN_PROGRESS').length,
+                done: t.tasks.filter((tk: any) => tk.status === 'COMPLETED' || tk.status === 'DONE').length,
+            },
+        }));
+    }
+
+    // ── MANAGER ADD-ON: Assign client project to team ─────────────────────────
+    async assignClientProjectToTeam(managerId: string, projectId: string, teamId: string | null) {
+        const roles = await this.prisma.userRole.findMany({ where: { user_id: managerId }, include: { role: true } });
+        const roleNames = roles.map(r => r.role.name.toUpperCase());
+        if (!roleNames.some(r => ['MANAGER', 'ADMIN'].includes(r))) {
+            throw new ForbiddenException('Manager access required');
+        }
+
+        const project = await this.prisma.clientProject.findUnique({ where: { id: projectId } });
+        if (!project) throw new NotFoundException('Client project not found');
+        if (project.manager_id !== managerId && !roleNames.includes('ADMIN')) {
+            throw new ForbiddenException('You can only assign your own client projects');
+        }
+
+        if (teamId) {
+            const team = await this.prisma.team.findUnique({ where: { id: teamId } });
+            if (!team) throw new NotFoundException('Team not found');
+        }
+
+        const updated = await this.prisma.clientProject.update({
+            where: { id: projectId },
+            data: { team_id: teamId },
+        });
+
+        // Notify client about team assignment
+        if (teamId) {
+            const team = await this.prisma.team.findUnique({ where: { id: teamId } });
+            await this.prisma.notification.create({
+                data: {
+                    user_id: project.client_id,
+                    type: 'PROJECT_TEAM_ASSIGNED',
+                    payload: {
+                        project_id: projectId,
+                        team_id: teamId,
+                        team_name: team?.name,
+                        message: `Your project "${project.project_name}" has been assigned to team "${team?.name}"`,
+                    },
+                },
+            });
+        }
+
+        return updated;
+    }
+
+    // ── MANAGER ADD-ON: Get team-client mapping overview ─────────────────────
+    async getTeamClientMapping(managerId: string) {
+        const roles = await this.prisma.userRole.findMany({ where: { user_id: managerId }, include: { role: true } });
+        const roleNames = roles.map(r => r.role.name.toUpperCase());
+        if (!roleNames.some(r => ['MANAGER', 'ADMIN'].includes(r))) {
+            throw new ForbiddenException('Manager access required');
+        }
+
+        const [teams, clientProjects, unassignedProjects] = await Promise.all([
+            this.prisma.team.findMany({
+                where: { status: 'ACTIVE' },
+                include: {
+                    members: { where: { status: 'ACTIVE' }, select: { user_id: true, role: true } },
+                    _count: { select: { tasks: true, members: true } },
+                },
+                orderBy: { created_at: 'desc' },
+            }),
+            this.prisma.clientProject.findMany({
+                where: { team_id: { not: null }, manager_id: roleNames.includes('ADMIN') ? undefined : managerId },
+                include: {
+                    client: { select: { id: true, name: true, email: true, organization: true } },
+                    deliverables: { select: { id: true, status: true } },
+                    milestones: { select: { id: true, status: true } },
+                },
+            }),
+            this.prisma.clientProject.findMany({
+                where: { team_id: null, manager_id: roleNames.includes('ADMIN') ? undefined : managerId, is_active: true },
+                include: {
+                    client: { select: { id: true, name: true, email: true, organization: true } },
+                },
+            }),
+        ]);
+
+        const projectsByTeam = new Map<string, any[]>();
+        clientProjects.forEach(p => {
+            if (p.team_id) {
+                if (!projectsByTeam.has(p.team_id)) projectsByTeam.set(p.team_id, []);
+                projectsByTeam.get(p.team_id)!.push(p);
+            }
+        });
+
+        return {
+            teams: teams.map(t => ({
+                ...t,
+                assignedProjects: projectsByTeam.get(t.id) || [],
+            })),
+            unassignedProjects,
+            stats: {
+                totalTeams: teams.length,
+                totalAssigned: clientProjects.length,
+                totalUnassigned: unassignedProjects.length,
+            },
+        };
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
     private assertMember(team: any, userId: string) {
         const isMember = team.members?.some((m: any) => m.user_id === userId && m.status === 'ACTIVE');

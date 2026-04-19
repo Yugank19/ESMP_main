@@ -45,6 +45,7 @@ const systemNav = [
     { href: '/dashboard/admin', label: 'Admin Panel', icon: Shield },
     { href: '/dashboard/employee-management', label: 'Employee Management', icon: UserCog },
     { href: '/dashboard/client-management', label: 'Client Management', icon: Users },
+    { href: '/dashboard/team-mapping', label: 'Team & Client Map', icon: GitBranch },
 ];
 
 interface SidebarProps {
@@ -167,6 +168,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                             if (item.href === '/dashboard/admin') return userRole === 'ADMIN';
                             if (item.href === '/dashboard/employee-management') return ['MANAGER', 'ADMIN'].includes(userRole);
                             if (item.href === '/dashboard/client-management') return ['MANAGER', 'ADMIN'].includes(userRole);
+                            if (item.href === '/dashboard/team-mapping') return ['MANAGER', 'ADMIN'].includes(userRole);
                             return true;
                         })
                         .map(item => <NavItem key={item.href} item={item} />)}

@@ -33,6 +33,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard/my-workspace": "My Workspace",
   "/dashboard/employee-management": "Employee Management",
   "/dashboard/client-management": "Client Management",
+  "/dashboard/team-mapping": "Team & Client Mapping",
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -51,7 +52,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const token = localStorage.getItem("token");
     const stored = localStorage.getItem("user");
     if (!token) { router.replace("/login"); return; }
-    if (stored) { try { setUser(JSON.parse(stored)); } catch {} }
+    if (stored) { try { setUser(JSON.parse(stored)); } catch { } }
     setMounted(true);
   }, [router]);
 
@@ -76,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       try {
         const data = await globalSearch(searchQuery);
         setSearchResults(data.results);
-      } catch {}
+      } catch { }
       finally { setSearching(false); }
     }, 400);
     return () => clearTimeout(debounceRef.current);
@@ -94,7 +95,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ].slice(0, 6) : [];
 
   const pathSegments = pathname?.split("/").filter(Boolean) || [];
-  
+
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--bg-base)]">
       {/* Sidebar */}

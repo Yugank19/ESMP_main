@@ -1,4 +1,4 @@
-@echo off
+continue@echo off
 :: If running inside PowerShell, relaunch as proper CMD
 if "%PROCESSOR_ARCHITEW6432%"=="" (
     if not "%ComSpec%"=="%SystemRoot%\system32\cmd.exe" goto :run

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESMP Documentation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; background: #f8fafc; line-height: 1.6; }
+  .page { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+  /* Cover */
+  .cover { background: linear-gradient(135deg,#1e3a8a,#2563eb,#7c3aed); color: #fff; padding: 60px 40px; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; page-break-after: always; }
+  .cover h1 { font-size: 72px; font-weight: 900; letter-spacing: 8px; margin-bottom: 16px; text-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+  .cover h2 { font-size: 22px; font-weight: 400; opacity: 0.9; margin-bottom: 8px; }
+  .cover p { font-size: 15px; opacity: 0.75; margin-bottom: 48px; }
+  .cover-stats { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; margin-top: 32px; }
+  .stat-card { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 20px 32px; min-width: 140px; }
+  .stat-card .num { font-size: 36px; font-weight: 800; }
+  .stat-card .lbl { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .cover-badge { background: rgba(255,255,255,0.2); border-radius: 20px; padding: 6px 18px; font-size: 13px; margin-bottom: 32px; display: inline-block; }
+
+  /* TOC */
+  .toc-page { background: #fff; padding: 48px 40px; page-break-after: always; }
+  .toc-page h2 { font-size: 28px; font-weight: 700; color: #1e3a8a; margin-bottom: 32px; padding-bottom: 12px; border-bottom: 3px solid #2563eb; }
+  .toc-list { list-style: none; }
+  .toc-list li { padding: 10px 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; page-break-inside: avoid; }
+  .toc-num { background: #2563eb; color: #fff; border-radius: 6px; padding: 2px 10px; font-size: 13px; font-weight: 700; min-width: 36px; text-align: center; }
+  .toc-list li a { color: #1e293b; text-decoration: none; font-size: 15px; }
+  .toc-list li a:hover { color: #2563eb; }
+
+  /* Section pages */
+  .section-page { background: #fff; padding: 40px; margin-bottom: 0; page-break-after: always; }
+  .section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
+  .section-num { background: linear-gradient(135deg,#2563eb,#7c3aed); color: #fff; border-radius: 10px; padding: 8px 16px; font-size: 20px; font-weight: 800; min-width: 56px; text-align: center; }
+  .section-title { font-size: 26px; font-weight: 700; color: #1e3a8a; }
+  .section-desc { color: #475569; font-size: 15px; margin-bottom: 24px; line-height: 1.7; }
+
+  /* Feature list */
+  .feature-list { list-style: none; margin-bottom: 24px; }
+  .feature-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; page-break-inside: avoid; }
+  .feature-check { color: #16a34a; font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .feature-name { font-weight: 600; color: #1e293b; min-width: 180px; flex-shrink: 0; }
+  .feature-desc { color: #64748b; font-size: 14px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 14px; }
+  th { background: #1e3a8a; color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; }
+  td { padding: 9px 14px; border: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  tr:nth-child(odd) td { background: #fff; }
+
+  /* Workflow pills */
+  .workflow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 24px; }
+  .pill { background: #dbeafe; color: #1e40af; border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 600; page-break-inside: avoid; }
+  .arrow { color: #94a3b8; font-size: 18px; }
+
+  /* Highlight box */
+  .highlight { border-left: 4px solid #2563eb; background: #eff6ff; padding: 14px 18px; border-radius: 0 8px 8px 0; margin-bottom: 20px; font-size: 14px; color: #1e40af; page-break-inside: avoid; }
+
+  /* Save as PDF button */
+  .pdf-btn { position: fixed; bottom: 28px; right: 28px; background: linear-gradient(135deg,#2563eb,#7c3aed); color: #fff; border: none; border-radius: 12px; padding: 14px 24px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(37,99,235,0.4); z-index: 9999; }
+  .pdf-btn:hover { opacity: 0.9; }
+
+  /* Print */
+  @media print {
+    @page { size: A4; margin: 15mm; }
+    body { background: #fff; }
+    .no-print { display: none !important; }
+    .cover { min-height: auto; padding: 40px 20px; }
+    .section-page, .toc-page { padding: 24px 20px; }
+    .feature-item { page-break-inside: avoid; }
+    .stat-card { page-break-inside: avoid; }
+    .pill { page-break-inside: avoid; }
+    table { page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="cover-badge">Enterprise Documentation v1.0</div>
+  <h1>ESMP</h1>
+  <h2>Enterprise Service Management Portal</h2>
+  <p>Complete Technical &amp; Feature Documentation</p>
+  <div class="cover-stats">
+    <div class="stat-card"><div class="num">24</div><div class="lbl">Sections</div></div>
+    <div class="stat-card"><div class="num">32</div><div class="lbl">API Modules</div></div>
+    <div class="stat-card"><div class="num">50+</div><div class="lbl">DB Models</div></div>
+    <div class="stat-card"><div class="num">4</div><div class="lbl">User Roles</div></div>
+  </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc-page page">
+  <h2>Table of Contents</h2>
+  <ul class="toc-list">
+    <li><span class="toc-num">01</span><a href="#s01">Platform Overview</a></li>
+    <li><span class="toc-num">02</span><a href="#s02">User Roles &amp; Permissions</a></li>
+    <li><span class="toc-num">03</span><a href="#s03">Authentication &amp; Onboarding</a></li>
+    <li><span class="toc-num">04</span><a href="#s04">Dashboard &amp; My Workspace</a></li>
+    <li><span class="toc-num">05</span><a href="#s05">Project &amp; Task Management</a></li>
+    <li><span class="toc-num">06</span><a href="#s06">Team Management</a></li>
+    <li><span class="toc-num">07</span><a href="#s07">Global Chat</a></li>
+    <li><span class="toc-num">08</span><a href="#s08">Team Chat</a></li>
+    <li><span class="toc-num">09</span><a href="#s09">File Sharing</a></li>
+    <li><span class="toc-num">10</span><a href="#s10">Approvals &amp; Workflows</a></li>
+    <li><span class="toc-num">11</span><a href="#s11">Notifications</a></li>
+    <li><span class="toc-num">12</span><a href="#s12">Service Requests (Tickets)</a></li>
+    <li><span class="toc-num">13</span><a href="#s13">Bug Tracker</a></li>
+    <li><span class="toc-num">14</span><a href="#s14">Time Tracking</a></li>
+    <li><span class="toc-num">15</span><a href="#s15">Knowledge Base</a></li>
+    <li><span class="toc-num">16</span><a href="#s16">Company Announcements</a></li>
+    <li><span class="toc-num">17</span><a href="#s17">Analytics &amp; Reports</a></li>
+    <li><span class="toc-num">18</span><a href="#s18">Client Portal</a></li>
+    <li><span class="toc-num">19</span><a href="#s19">Employee Management</a></li>
+    <li><span class="toc-num">20</span><a href="#s20">Workload Management</a></li>
+    <li><span class="toc-num">21</span><a href="#s21">Admin Panel</a></li>
+    <li><span class="toc-num">22</span><a href="#s22">Settings</a></li>
+    <li><span class="toc-num">23</span><a href="#s23">Video Conferencing</a></li>
+    <li><span class="toc-num">24</span><a href="#s24">Technical Architecture</a></li>
+  </ul>
+</div>
+
+<!-- SECTION 01: Platform Overview -->
+<div class="section-page page" id="s01">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <div class="section-title">Platform Overview</div>
+  </div>
+  <p class="section-desc">ESMP is a full-stack enterprise service management platform built on a Turborepo monorepo. It combines a NestJS REST API backend with a Next.js frontend, backed by PostgreSQL via Prisma ORM and Supabase for storage, with real-time capabilities via Socket.IO.</p>
+  <div class="highlight">Monorepo structure: <strong>apps/api</strong> (NestJS) + <strong>apps/web</strong> (Next.js) managed by Turborepo with shared packages.</div>
+  <table>
+    <thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Backend Framework</td><td>NestJS (Node.js)</td><td>REST API, WebSocket gateways, modular architecture</td></tr>
+      <tr><td>Frontend Framework</td><td>Next.js 14 (App Router)</td><td>SSR/CSR hybrid, role-based routing, client portal</td></tr>
+      <tr><td>Database</td><td>PostgreSQL + Prisma ORM</td><td>Relational data, migrations, type-safe queries</td></tr>
+      <tr><td>Storage</td><td>Supabase Storage</td><td>File uploads, avatars, attachments</td></tr>
+      <tr><td>Real-time</td><td>Socket.IO</td><td>Chat, notifications, live updates</td></tr>
+      <tr><td>Monorepo</td><td>Turborepo</td><td>Build orchestration, caching, task pipelines</td></tr>
+      <tr><td>Auth</td><td>JWT + OTP (Nodemailer)</td><td>Stateless auth, email verification</td></tr>
+      <tr><td>Video</td><td>Jitsi Meet (embedded)</td><td>In-app video conferencing</td></tr>
+      <tr><td>UI Library</td><td>Tailwind CSS + shadcn/ui</td><td>Component system, theming</td></tr>
+      <tr><td>State Management</td><td>React Query + Zustand</td><td>Server state, client state</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Turborepo Monorepo</span><span class="feature-desc">Unified build pipeline for API and Web apps with shared configs and packages</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">32 API Modules</span><span class="feature-desc">Fully modular NestJS architecture with dedicated controllers, services, and modules</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">50+ DB Models</span><span class="feature-desc">Comprehensive Prisma schema covering all platform entities and relationships</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Role-Based Access</span><span class="feature-desc">4 distinct roles (Admin/Manager/Employee/Client) with granular permission guards</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Real-Time WebSockets</span><span class="feature-desc">Socket.IO gateways for chat, notifications, and live collaboration features</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 02: User Roles -->
+<div class="section-page page" id="s02">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <div class="section-title">User Roles &amp; Permissions</div>
+  </div>
+  <p class="section-desc">ESMP defines four distinct user roles, each with a tailored experience and access scope. Role assignment is managed by Admins and enforced via JWT claims and NestJS guards on every API endpoint.</p>
+  <table>
+    <thead><tr><th>Feature Area</th><th>Admin</th><th>Manager</th><th>Employee</th><th>Client</th></tr></thead>
+    <tbody>
+      <tr><td>User Management</td><td>Full</td><td>Own employees</td><td>—</td><td>—</td></tr>
+      <tr><td>Project Management</td><td>Full</td><td>Full</td><td>View/assigned</td><td>View only</td></tr>
+      <tr><td>Task Management</td><td>Full</td><td>Full</td><td>Assigned tasks</td><td>—</td></tr>
+      <tr><td>Team Management</td><td>Full</td><td>Own teams</td><td>Member actions</td><td>—</td></tr>
+      <tr><td>Analytics</td><td>Global</td><td>Team/project</td><td>Personal</td><td>—</td></tr>
+      <tr><td>Admin Panel</td><td>Full</td><td>—</td><td>—</td><td>—</td></tr>
+      <tr><td>Client Portal</td><td>—</td><td>Manage clients</td><td>—</td><td>Full portal</td></tr>
+      <tr><td>Approvals</td><td>Full</td><td>Approve/reject</td><td>Submit requests</td><td>—</td></tr>
+      <tr><td>Knowledge Base</td><td>Full</td><td>Create/edit</td><td>Read only</td><td>—</td></tr>
+      <tr><td>Announcements</td><td>Full</td><td>Create/edit</td><td>Read only</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Admin</span><span class="feature-desc">Full platform access — user management, role assignment, system stats, activity logs, CSV export</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Manager</span><span class="feature-desc">Manages projects, employees, teams, and clients within their own scope; cannot access other managers' data</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Employee</span><span class="feature-desc">Works on assigned tasks and tickets, participates in teams, submits time entries and approval requests</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Client</span><span class="feature-desc">Separate /client-dashboard portal — views projects, reviews deliverables, tracks milestones, submits feedback</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Manager Isolation</span><span class="feature-desc">Managers can only see and manage employees, teams, and projects they created — strict data isolation</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">JWT Role Claims</span><span class="feature-desc">Role embedded in JWT payload, validated on every request via NestJS RolesGuard decorator</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 03: Authentication -->
+<div class="section-page page" id="s03">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <div class="section-title">Authentication &amp; Onboarding</div>
+  </div>
+  <p class="section-desc">ESMP uses a secure email-first authentication flow with OTP verification, JWT tokens, and a Gmail-only policy. New users go through a guided onboarding flow before accessing the platform.</p>
+  <div class="highlight">Gmail-only policy: Only @gmail.com addresses are accepted for registration. This is enforced at both the API and UI layers.</div>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">OTP Email Verification</span><span class="feature-desc">6-digit OTP sent via Nodemailer on registration and login; expires after 10 minutes</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">JWT Authentication</span><span class="feature-desc">Stateless JWT tokens with role claims; validated via Passport JWT strategy on all protected routes</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Gmail-Only Policy</span><span class="feature-desc">Registration restricted to @gmail.com addresses; enforced server-side with clear error messaging</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Role-Based Redirect</span><span class="feature-desc">After login, users are redirected to their role-specific dashboard (admin/manager/employee/client)</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Onboarding Flow</span><span class="feature-desc">New users complete a profile setup wizard (name, avatar, department, designation) before accessing the platform</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Audit Logging</span><span class="feature-desc">All auth events (login, logout, OTP request, password change) are recorded in the audit log</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Password Change</span><span class="feature-desc">Secure password update flow with current password verification; available in Settings</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">WebSocket Auth</span><span class="feature-desc">Socket.IO connections authenticated via WsJwtGuard — JWT validated on handshake</span></li>
+  </ul>
+  <table>
+    <thead><tr><th>Auth Event</th><th>Action</th><th>Logged</th></tr></thead>
+    <tbody>
+      <tr><td>Registration</td><td>OTP sent to email</td><td>Yes</td></tr>
+      <tr><td>OTP Verify</td><td>Account activated, JWT issued</td><td>Yes</td></tr>
+      <tr><td>Login</td><td>OTP sent, JWT issued on verify</td><td>Yes</td></tr>
+      <tr><td>Logout</td><td>Client token cleared</td><td>Yes</td></tr>
+      <tr><td>Password Change</td><td>Hash updated, session invalidated</td><td>Yes</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 04: Dashboard -->
+<div class="section-page page" id="s04">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <div class="section-title">Dashboard &amp; My Workspace</div>
+  </div>
+  <p class="section-desc">The dashboard provides a role-aware overview of the user's work. Each role sees a tailored set of summary cards, activity streams, and quick navigation links. The My Workspace page is a personal hub for daily work.</p>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Task Summary Cards</span><span class="feature-desc">At-a-glance counts for total, in-progress, completed, and overdue tasks with color-coded status</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Activity Stream</span><span class="feature-desc">Real-time feed of recent actions across projects, tasks, tickets, and team events relevant to the user</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Role Insights Panel</span><span class="feature-desc">Managers see team performance metrics; employees see personal productivity stats; admins see system health</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Quick Navigation</span><span class="feature-desc">Shortcut tiles to most-used features based on role — tasks, tickets, teams, approvals, knowledge base</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">My Workspace Page</span><span class="feature-desc">Personal hub showing my tasks, my tickets, pinned announcements, upcoming deadlines, and recent files</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Announcements Widget</span><span class="feature-desc">Pinned and recent company announcements displayed prominently on the workspace page</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Upcoming Deadlines</span><span class="feature-desc">Tasks and tickets with approaching due dates surfaced on the dashboard with urgency indicators</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Responsive Layout</span><span class="feature-desc">Single-column layout on mobile, multi-panel on desktop — all data accessible on any device</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 05: Project & Task Management -->
+<div class="section-page page" id="s05">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <div class="section-title">Project &amp; Task Management</div>
+  </div>
+  <p class="section-desc">Full project lifecycle management with task assignment, status workflows, comments, history tracking, milestones, and a submission/review system for task completion approvals.</p>
+  <div class="highlight">Task status workflow is strictly enforced — transitions must follow the defined sequence and are logged in the task history.</div>
+  <p style="font-weight:600;margin-bottom:8px;color:#1e293b;">Task Status Workflow:</p>
+  <div class="workflow">
+    <span class="pill">TODO</span><span class="arrow">→</span>
+    <span class="pill">IN_PROGRESS</span><span class="arrow">→</span>
+    <span class="pill">READY_FOR_REVIEW</span><span class="arrow">→</span>
+    <span class="pill">READY_FOR_TESTING</span><span class="arrow">→</span>
+    <span class="pill">DONE</span>
+  </div>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Project CRUD</span><span class="feature-desc">Create, read, update, delete projects with name, description, status, deadline, and client association</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Task Assignment</span><span class="feature-desc">Assign tasks to team members with priority, due date, estimated hours, and description</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Status Workflow</span><span class="feature-desc">5-stage workflow from TODO to DONE with enforced transitions and full audit trail</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Task Comments</span><span class="feature-desc">Threaded comments on tasks with @mentions, timestamps, and edit/delete by author</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Task History</span><span class="feature-desc">Complete change log for every task — status changes, reassignments, edits all recorded with user and timestamp</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Milestones</span><span class="feature-desc">Project milestones with target dates, completion status, and linked tasks for progress tracking</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Submissions &amp; Reviews</span><span class="feature-desc">Employees submit completed tasks for review; reviewers can approve, request changes, or reject with comments</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Task Filtering</span><span class="feature-desc">Filter by status, assignee, priority, project, due date — with saved filter presets</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 06: Team Management -->
+<div class="section-page page" id="s06">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <div class="section-title">Team Management</div>
+  </div>
+  <p class="section-desc">Managers create and manage teams with a rich set of collaboration tools. Each team has its own workspace with member roles, activity logs, progress updates, meeting notes, and announcements.</p>
+  <table>
+    <thead><tr><th>Team Role</th><th>Permissions</th></tr></thead>
+    <tbody>
+      <tr><td>LEADER</td><td>Full team management — invite, remove, assign roles, post announcements, manage meetings</td></tr>
+      <tr><td>MEMBER</td><td>View team content, post updates, participate in chat, complete assigned tasks</td></tr>
+      <tr><td>REVIEWER</td><td>Review and approve task submissions, post feedback, view all team content</td></tr>
+      <tr><td>VIEWER</td><td>Read-only access to team content — no posting or task assignment</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Team Creation</span><span class="feature-desc">Managers create teams with name, description, and initial member list; team gets its own workspace</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Invite System</span><span class="feature-desc">Email invitations sent to employees; accept/decline via notification; invite link with expiry</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Member Roles</span><span class="feature-desc">4 roles (LEADER/MEMBER/REVIEWER/VIEWER) with distinct permissions within the team context</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Manager Isolation</span><span class="feature-desc">Managers can only see and manage their own teams — complete data isolation between managers</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Activity Log</span><span class="feature-desc">Team-scoped activity feed showing member joins, task updates, file uploads, and announcements</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Progress Updates</span><span class="feature-desc">Members post progress updates with text and optional file attachments; visible to all team members</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Meeting Notes</span><span class="feature-desc">Structured meeting notes with agenda, attendees, action items, and date — stored in team workspace</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Team Announcements</span><span class="feature-desc">Leaders post team-scoped announcements; pinnable, with expiry dates and type classification</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 07: Global Chat -->
+<div class="section-page page" id="s07">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <div class="section-title">Global Chat</div>
+  </div>
+  <p class="section-desc">Platform-wide messaging system allowing any user to connect with colleagues via direct messages or group chats. Chat requests are Gmail-based, and all messaging is real-time via Socket.IO WebSockets.</p>
+  <div class="highlight">Global Chat is completely separate from Team Chat — different data models, different Socket.IO namespaces, and different UI sections.</div>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Chat Requests</span><span class="feature-desc">Initiate a chat by searching a Gmail address; recipient must accept before messaging begins</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Direct Messages</span><span class="feature-desc">1-on-1 real-time messaging with read receipts, typing indicators, and message history</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Group Chats</span><span class="feature-desc">Create group conversations with multiple participants; group name and avatar customizable</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Real-Time WebSocket</span><span class="feature-desc">All messages delivered instantly via Socket.IO; online/offline presence indicators</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Edit Messages</span><span class="feature-desc">Authors can edit sent messages; edited indicator shown with original timestamp preserved</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Delete Messages</span><span class="feature-desc">Authors can delete messages; "message deleted" placeholder shown to other participants</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">View Profiles</span><span class="feature-desc">Click any participant to view their profile card — name, avatar, role, department, designation</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Group Management</span><span class="feature-desc">Add/remove members, rename group, leave group, delete group (creator only)</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 08: Team Chat -->
+<div class="section-page page" id="s08">
+  <div class="section-header">
+    <div class="section-num">08</div>
+    <div class="section-title">Team Chat</div>
+  </div>
+  <p class="section-desc">Each team has a dedicated, scoped chat room accessible only to team members. Team Chat is a completely separate system from Global Chat with its own features tailored for team collaboration.</p>
+  <div class="highlight">Team Chat uses a separate Socket.IO gateway, separate database tables, and a separate UI section from Global Chat — they do not share any infrastructure.</div>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Team-Scoped Room</span><span class="feature-desc">Each team has exactly one chat room; only team members can access it; auto-created with the team</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Message Types</span><span class="feature-desc">Support for text, file attachments, images, and system messages (member joined/left)</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Pin Messages</span><span class="feature-desc">Leaders and reviewers can pin important messages; pinned messages shown in a dedicated panel</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Edit &amp; Delete</span><span class="feature-desc">Authors can edit or delete their messages; edit history tracked; deleted messages show placeholder</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Read Receipts</span><span class="feature-desc">Per-message read status showing which team members have seen each message</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Message Search</span><span class="feature-desc">Full-text search within the team chat history; results highlight matching terms</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Real-Time Delivery</span><span class="feature-desc">Messages delivered instantly via dedicated team-chat Socket.IO gateway with typing indicators</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 09: File Sharing -->
+<div class="section-page page" id="s09">
+  <div class="section-header">
+    <div class="section-num">09</div>
+    <div class="section-title">File Sharing</div>
+  </div>
+  <p class="section-desc">Centralized file management with folder organization, versioning, comments, and importance flagging. Files are stored in Supabase Storage with metadata tracked in PostgreSQL.</p>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">File Upload</span><span class="feature-desc">Upload any file type to Supabase Storage; files linked to projects, tasks, tickets, or teams</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Folder Structure</span><span class="feature-desc">Organize files in nested folders; drag-and-drop reordering; breadcrumb navigation</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">File Versioning</span><span class="feature-desc">Upload new versions of existing files; version history with timestamps and uploader info; restore previous versions</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">File Comments</span><span class="feature-desc">Comment threads on individual files for review feedback and collaboration</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Important Flag</span><span class="feature-desc">Mark files as important for quick access; important files surfaced in My Workspace</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Avatar Upload</span><span class="feature-desc">Profile avatar upload with automatic resizing and Supabase Storage integration</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Access Control</span><span class="feature-desc">File visibility scoped to project/team membership; managers control sharing permissions</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Download &amp; Preview</span><span class="feature-desc">Direct download links; in-browser preview for images and PDFs via Supabase signed URLs</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 10: Approvals & Workflows -->
+<div class="section-page page" id="s10">
+  <div class="section-header">
+    <div class="section-num">10</div>
+    <div class="section-title">Approvals &amp; Workflows</div>
+  </div>
+  <p class="section-desc">A flexible multi-step approval workflow engine supporting 6 request types. Requests move through configurable approval chains with full comment trails and status tracking.</p>
+  <p style="font-weight:600;margin-bottom:8px;color:#1e293b;">Request Types:</p>
+  <div class="workflow">
+    <span class="pill">LEAVE</span>
+    <span class="pill">ACCESS</span>
+    <span class="pill">DOCUMENT</span>
+    <span class="pill">TICKET</span>
+    <span class="pill">TASK_COMPLETION</span>
+    <span class="pill">CHANGE_REQUEST</span>
+  </div>
+  <p style="font-weight:600;margin-bottom:8px;color:#1e293b;">Approval Status Flow:</p>
+  <div class="workflow">
+    <span class="pill">PENDING</span><span class="arrow">→</span>
+    <span class="pill">IN_REVIEW</span><span class="arrow">→</span>
+    <span class="pill">APPROVED</span>
+    <span class="arrow">/</span>
+    <span class="pill">RETURNED</span>
+    <span class="arrow">/</span>
+    <span class="pill">REJECTED</span>
+  </div>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">6 Request Types</span><span class="feature-desc">LEAVE, ACCESS, DOCUMENT, TICKET, TASK_COMPLETION, CHANGE_REQUEST — each with type-specific fields</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Multi-Step Chains</span><span class="feature-desc">Configurable approval chains with multiple approvers in sequence; each step tracked independently</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Approve / Return / Reject</span><span class="feature-desc">Approvers can approve, return for revision, or reject with mandatory comments explaining the decision</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Status Tracking</span><span class="feature-desc">Real-time status updates; submitters notified at each step via in-app and email notifications</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">My Submissions Tab</span><span class="feature-desc">Employees see all their submitted requests with current status, history, and approver comments</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Awaiting My Action</span><span class="feature-desc">Approvers see a dedicated tab of requests pending their review, sorted by urgency and submission date</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Comment Trail</span><span class="feature-desc">Full comment history on each request — every approve/return/reject action recorded with user and timestamp</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 11: Notifications -->
+<div class="section-page page" id="s11">
+  <div class="section-header">
+    <div class="section-num">11</div>
+    <div class="section-title">Notifications</div>
+  </div>
+  <p class="section-desc">Multi-channel notification system with in-app bell notifications, email alerts, and configurable preferences. Notifications cover all major platform events from task assignments to approval decisions.</p>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">In-App Bell</span><span class="feature-desc">Notification bell in the header with unread count badge; dropdown shows recent notifications with timestamps</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Email Notifications</span><span class="feature-desc">Email alerts for critical events — task assignments, approval decisions, team invites, ticket updates</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Team Invite Actions</span><span class="feature-desc">Accept or decline team invitations directly from the notification dropdown without navigating away</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Mark All Read</span><span class="feature-desc">One-click "mark all as read" to clear the unread count; individual notifications also dismissible</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">30s Auto-Poll</span><span class="feature-desc">Notifications auto-refresh every 30 seconds to catch new events without requiring a page reload</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Notification Preferences</span><span class="feature-desc">Per-category toggles in Settings — choose which events trigger in-app vs email notifications</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Notification Types</span><span class="feature-desc">Task, ticket, approval, team invite, announcement, mention, file share, and system notifications</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 12: Service Requests (Tickets) -->
+<div class="section-page page" id="s12">
+  <div class="section-header">
+    <div class="section-num">12</div>
+    <div class="section-title">Service Requests (Tickets)</div>
+  </div>
+  <p class="section-desc">A full-featured IT service desk ticketing system with auto-numbering, 8 categories, priority levels, a complete status lifecycle, assignment, comments, attachments, and due dates.</p>
+  <p style="font-weight:600;margin-bottom:8px;color:#1e293b;">Ticket Status Lifecycle:</p>
+  <div class="workflow">
+    <span class="pill">OPEN</span><span class="arrow">→</span>
+    <span class="pill">IN_PROGRESS</span><span class="arrow">→</span>
+    <span class="pill">ON_HOLD</span><span class="arrow">→</span>
+    <span class="pill">RESOLVED</span><span class="arrow">→</span>
+    <span class="pill">CLOSED</span>
+  </div>
+  <table>
+    <thead><tr><th>Category</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>IT</td><td>IT infrastructure, hardware, software issues</td></tr>
+      <tr><td>HR</td><td>Human resources requests and inquiries</td></tr>
+      <tr><td>BUG</td><td>Software bug reports (linked to Bug Tracker)</td></tr>
+      <tr><td>SUPPORT</td><td>General support requests</td></tr>
+      <tr><td>ACCESS</td><td>System access and permission requests</td></tr>
+      <tr><td>EQUIPMENT</td><td>Equipment requests and maintenance</td></tr>
+      <tr><td>LEAVE</td><td>Leave requests via ticket system</td></tr>
+      <tr><td>GENERAL</td><td>Miscellaneous requests not fitting other categories</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Auto TKT-XXXX Numbering</span><span class="feature-desc">Sequential ticket IDs (TKT-0001, TKT-0002...) auto-generated on creation for easy reference</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Priority Levels</span><span class="feature-desc">LOW, MEDIUM, HIGH, CRITICAL priority with color-coded indicators and SLA tracking</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Assignment</span><span class="feature-desc">Tickets assigned to specific employees; reassignment tracked in history; unassigned queue for managers</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Comments &amp; History</span><span class="feature-desc">Threaded comments with internal/external flag; full change history with user and timestamp</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Attachments</span><span class="feature-desc">File attachments on tickets and comments; stored in Supabase with download links</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Due Dates</span><span class="feature-desc">Optional due dates with overdue highlighting; due date changes tracked in history</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 13: Bug Tracker -->
+<div class="section-page page" id="s13">
+  <div class="section-header">
+    <div class="section-num">13</div>
+    <div class="section-title">Bug Tracker</div>
+  </div>
+  <p class="section-desc">Dedicated bug tracking system with severity/priority classification, environment tracking, reproduction steps, assignment, and a complete status workflow from discovery to closure.</p>
+  <p style="font-weight:600;margin-bottom:8px;color:#1e293b;">Bug Status Workflow:</p>
+  <div class="workflow">
+    <span class="pill">OPEN</span><span class="arrow">→</span>
+    <span class="pill">IN_PROGRESS</span><span class="arrow">→</span>
+    <span class="pill">FIXED</span><span class="arrow">→</span>
+    <span class="pill">TESTING</span><span class="arrow">→</span>
+    <span class="pill">CLOSED</span>
+    <span class="arrow">/</span>
+    <span class="pill">WONT_FIX</span>
+  </div>
+  <table>
+    <thead><tr><th>Attribute</th><th>Options</th></tr></thead>
+    <tbody>
+      <tr><td>Severity</td><td>LOW, MEDIUM, HIGH, CRITICAL</td></tr>
+      <tr><td>Priority</td><td>LOW, MEDIUM, HIGH, URGENT</td></tr>
+      <tr><td>Environment</td><td>PRODUCTION, STAGING, DEV</td></tr>
+      <tr><td>Status</td><td>OPEN, IN_PROGRESS, FIXED, TESTING, CLOSED, WONT_FIX</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Severity &amp; Priority</span><span class="feature-desc">Independent severity (impact) and priority (urgency) fields for accurate triage and scheduling</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Environment Tracking</span><span class="feature-desc">Tag bugs to PRODUCTION, STAGING, or DEV environment; filter by environment for targeted fixes</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Reproduction Steps</span><span class="feature-desc">Structured reproduction steps field with numbered steps; helps developers reproduce and fix bugs faster</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Assignment</span><span class="feature-desc">Assign bugs to developers; reassignment history tracked; unassigned bugs visible to managers</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Comments</span><span class="feature-desc">Comment threads for investigation notes, fix descriptions, and testing feedback</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">WONT_FIX Status</span><span class="feature-desc">Explicitly mark bugs as won't fix with mandatory reason; keeps backlog clean and decisions documented</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Project Linking</span><span class="feature-desc">Bugs linked to specific projects for scoped reporting and project-level bug dashboards</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 14: Time Tracking -->
+<div class="section-page page" id="s14">
+  <div class="section-header">
+    <div class="section-num">14</div>
+    <div class="section-title">Time Tracking</div>
+  </div>
+  <p class="section-desc">Comprehensive time tracking with manual entry, task and ticket linking, billable hour flagging, weekly summaries, and a full history view for reporting and invoicing.</p>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Time Entries</span><span class="feature-desc">Log time with date, hours, description, and optional start/end times for precise tracking</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Task &amp; Ticket Linking</span><span class="feature-desc">Link time entries to specific tasks or tickets for accurate project cost tracking</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Billable Flag</span><span class="feature-desc">Mark entries as billable or non-billable; billable hours aggregated for client invoicing reports</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Weekly Summary</span><span class="feature-desc">Visual weekly summary showing hours per day, total hours, and billable vs non-billable breakdown</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Start/End Times</span><span class="feature-desc">Optional start and end time fields for precise time recording; duration auto-calculated</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">History View</span><span class="feature-desc">Full time entry history with filtering by date range, project, task, and billable status</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Manager Visibility</span><span class="feature-desc">Managers can view time entries for their employees; used in workload and analytics reports</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 15: Knowledge Base -->
+<div class="section-page page" id="s15">
+  <div class="section-header">
+    <div class="section-num">15</div>
+    <div class="section-title">Knowledge Base</div>
+  </div>
+  <p class="section-desc">A centralized knowledge repository for company documentation, policies, processes, and FAQs. Managers create and publish articles; employees search and read. View tracking provides engagement insights.</p>
+  <table>
+    <thead><tr><th>Category</th><th>Typical Content</th></tr></thead>
+    <tbody>
+      <tr><td>IT</td><td>Technical guides, setup instructions, troubleshooting</td></tr>
+      <tr><td>HR</td><td>HR policies, benefits, onboarding guides</td></tr>
+      <tr><td>POLICY</td><td>Company policies, code of conduct, compliance</td></tr>
+      <tr><td>PROCESS</td><td>Workflow documentation, SOPs, runbooks</td></tr>
+      <tr><td>FAQ</td><td>Frequently asked questions and answers</td></tr>
+      <tr><td>GENERAL</td><td>Miscellaneous company information</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Article Creation</span><span class="feature-desc">Managers create rich-text articles with title, category, tags, and formatted content</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Search &amp; Filter</span><span class="feature-desc">Full-text search across article titles and content; filter by category and tags</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Pin Articles</span><span class="feature-desc">Pin important articles to the top of the knowledge base for quick employee access</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Publish Control</span><span class="feature-desc">Draft/published states — managers can prepare articles before making them visible to employees</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">View Tracking</span><span class="feature-desc">Track article view counts and unique viewers; helps identify most-needed documentation</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Managers Only Create</span><span class="feature-desc">Only managers and admins can create/edit articles; employees have read-only access</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 16: Company Announcements -->
+<div class="section-page page" id="s16">
+  <div class="section-header">
+    <div class="section-num">16</div>
+    <div class="section-title">Company Announcements</div>
+  </div>
+  <p class="section-desc">Company-wide announcement system for broadcasting important information to all employees. Supports 6 announcement types, pinning, expiration dates, and type-based filtering.</p>
+  <p style="font-weight:600;margin-bottom:8px;color:#1e293b;">Announcement Types:</p>
+  <div class="workflow">
+    <span class="pill">GENERAL</span>
+    <span class="pill">URGENT</span>
+    <span class="pill">POLICY</span>
+    <span class="pill">HOLIDAY</span>
+    <span class="pill">MEETING</span>
+    <span class="pill">TEAM</span>
+  </div>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">6 Announcement Types</span><span class="feature-desc">GENERAL, URGENT, POLICY, HOLIDAY, MEETING, TEAM — each with distinct color coding and icon</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Pin Announcements</span><span class="feature-desc">Pin critical announcements to the top of the list and My Workspace; multiple pins supported</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Expiration Dates</span><span class="feature-desc">Set expiry dates on announcements; expired announcements auto-archived but remain searchable</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Type Filtering</span><span class="feature-desc">Filter announcements by type; employees can focus on relevant categories</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Manager-Only Creation</span><span class="feature-desc">Only managers and admins can create announcements; employees read-only</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">My Workspace Display</span><span class="feature-desc">Active pinned announcements shown prominently on every employee's My Workspace page</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">URGENT Highlighting</span><span class="feature-desc">URGENT type announcements displayed with red banner and priority placement across the platform</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 17: Analytics & Reports -->
+<div class="section-page page" id="s17">
+  <div class="section-header">
+    <div class="section-num">17</div>
+    <div class="section-title">Analytics &amp; Reports</div>
+  </div>
+  <p class="section-desc">Comprehensive analytics and reporting across the platform. Global analytics for admins, team-scoped analytics for managers, personal stats for employees, and 7 report types with scheduled snapshots.</p>
+  <table>
+    <thead><tr><th>Report Type</th><th>Audience</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>Task Report</td><td>Manager/Admin</td><td>Task completion rates, overdue analysis, assignee performance</td></tr>
+      <tr><td>Project Report</td><td>Manager/Admin</td><td>Project progress, milestone completion, budget vs actual</td></tr>
+      <tr><td>Team Report</td><td>Manager/Admin</td><td>Team productivity, workload distribution, activity metrics</td></tr>
+      <tr><td>Ticket Report</td><td>Manager/Admin</td><td>Ticket volume, resolution times, category breakdown</td></tr>
+      <tr><td>Time Report</td><td>Manager/Admin</td><td>Billable hours, time by project/employee, utilization rates</td></tr>
+      <tr><td>Bug Report</td><td>Manager/Admin</td><td>Bug counts by severity, resolution rates, environment breakdown</td></tr>
+      <tr><td>Employee Report</td><td>Admin</td><td>Employee activity, performance metrics, engagement scores</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Global Analytics</span><span class="feature-desc">Admin-level platform-wide metrics — total users, active projects, ticket volumes, system health</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Team Analytics</span><span class="feature-desc">Manager-scoped analytics for their teams — productivity trends, workload balance, completion rates</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Analytics Snapshots</span><span class="feature-desc">Automated DAILY, WEEKLY, and MONTHLY snapshots stored for historical trend analysis</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Calendar View</span><span class="feature-desc">Calendar visualization of tasks, deadlines, meetings, and milestones across projects</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Global Search</span><span class="feature-desc">Cross-entity search across tasks, tickets, projects, users, files, and knowledge base articles</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 18: Client Portal -->
+<div class="section-page page" id="s18">
+  <div class="section-header">
+    <div class="section-num">18</div>
+    <div class="section-title">Client Portal</div>
+  </div>
+  <p class="section-desc">A dedicated client-facing portal at /client-dashboard providing project visibility, deliverable review, milestone tracking, and a structured feedback system. Completely separate from the main employee dashboard.</p>
+  <div class="highlight">Client Portal is a separate Next.js route group (/client-dashboard) with its own layout, navigation, and API endpoints — clients never see the internal employee dashboard.</div>
+  <table>
+    <thead><tr><th>Access Level</th><th>Permissions</th></tr></thead>
+    <tbody>
+      <tr><td>VIEW</td><td>Read-only access to project data, milestones, and deliverables</td></tr>
+      <tr><td>COMMENT</td><td>VIEW + ability to post feedback comments on deliverables</td></tr>
+      <tr><td>APPROVE</td><td>COMMENT + ability to approve or reject deliverables</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Manager-Created Accounts</span><span class="feature-desc">Managers create client accounts; credentials emailed to client; clients cannot self-register</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Project Overview</span><span class="feature-desc">Clients see their associated projects with status, progress percentage, team info, and timeline</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Deliverables Review</span><span class="feature-desc">Clients review submitted deliverables and approve or reject with comments; approval tracked in workflow</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Milestone Tracking</span><span class="feature-desc">Visual milestone timeline showing completed, in-progress, and upcoming milestones with dates</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Feedback System</span><span class="feature-desc">Structured feedback with COMMENT and CHANGE_REQUEST types; feedback visible to project team</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Access Control</span><span class="feature-desc">3-tier access (VIEW/COMMENT/APPROVE) assigned per client per project by the manager</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Client Management Page</span><span class="feature-desc">Manager dashboard for managing all clients — create, edit, assign projects, set access levels</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Approval Workflow</span><span class="feature-desc">Client approvals feed into the main approval workflow system; tracked alongside internal approvals</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 19: Employee Management -->
+<div class="section-page page" id="s19">
+  <div class="section-header">
+    <div class="section-num">19</div>
+    <div class="section-title">Employee Management</div>
+  </div>
+  <p class="section-desc">Managers create and manage employee accounts within their scope. Employee profiles include department, designation, skills, and role-specific detail tables. Manager isolation ensures complete data separation.</p>
+  <div class="highlight">Employees cannot self-register — all employee accounts are created by managers. Login credentials are automatically emailed to the new employee on account creation.</div>
+  <table>
+    <thead><tr><th>Profile Field</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>Department</td><td>Employee's department (Engineering, HR, Sales, etc.)</td></tr>
+      <tr><td>Designation</td><td>Job title / role within the department</td></tr>
+      <tr><td>Skills</td><td>Skill tags for workload matching and team assignment</td></tr>
+      <tr><td>Manager</td><td>The manager who created/owns this employee record</td></tr>
+      <tr><td>Join Date</td><td>Employment start date for tenure tracking</td></tr>
+      <tr><td>Status</td><td>ACTIVE / INACTIVE / SUSPENDED</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Manager-Created Only</span><span class="feature-desc">Only managers and admins can create employee accounts; no self-registration for employees</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Employee Profiles</span><span class="feature-desc">Rich profiles with department, designation, skills, avatar, contact info, and employment details</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Manager Isolation</span><span class="feature-desc">Managers can only view and manage employees they created — strict data isolation between managers</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Delete Employee</span><span class="feature-desc">Managers can deactivate or delete employee accounts; associated data handled per retention policy</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Credentials Emailed</span><span class="feature-desc">Auto-generated credentials (email + temporary password) sent to new employees on account creation</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Role-Specific Tables</span><span class="feature-desc">Employee detail view shows role-specific data tables — assigned tasks, tickets, time entries, team memberships</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 20: Workload Management -->
+<div class="section-page page" id="s20">
+  <div class="section-header">
+    <div class="section-num">20</div>
+    <div class="section-title">Workload Management</div>
+  </div>
+  <p class="section-desc">Visual workload overview for managers to monitor team capacity and prevent burnout. Shows utilization percentages, task counts, hours logged, and status indicators for each team member.</p>
+  <table>
+    <thead><tr><th>Status</th><th>Indicator</th><th>Criteria</th></tr></thead>
+    <tbody>
+      <tr><td>AVAILABLE</td><td>Green</td><td>Low active task count, utilization below threshold</td></tr>
+      <tr><td>BUSY</td><td>Yellow</td><td>Moderate active tasks, utilization within normal range</td></tr>
+      <tr><td>OVERLOADED</td><td>Red</td><td>High active tasks or overdue tasks, utilization above threshold</td></tr>
+    </tbody>
+  </table>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Team Workload View</span><span class="feature-desc">Manager sees all team members in a single view with their current workload metrics side by side</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Status Indicators</span><span class="feature-desc">Color-coded AVAILABLE/BUSY/OVERLOADED status calculated from active tasks and hours logged</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Utilization % Bar</span><span class="feature-desc">Visual progress bar showing each employee's utilization percentage relative to capacity</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Active Task Count</span><span class="feature-desc">Count of currently active (non-done) tasks per employee with drill-down to task list</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Overdue Task Count</span><span class="feature-desc">Separate count of overdue tasks highlighted in red to flag employees needing support</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Hours This Week</span><span class="feature-desc">Total hours logged this week per employee from time tracking entries</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Summary Cards</span><span class="feature-desc">Team-level summary cards showing total available, busy, and overloaded member counts</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 21: Admin Panel -->
+<div class="section-page page" id="s21">
+  <div class="section-header">
+    <div class="section-num">21</div>
+    <div class="section-title">Admin Panel</div>
+  </div>
+  <p class="section-desc">The Admin Panel provides system-wide oversight and control. Accessible only to users with the ADMIN role, it covers user management, role assignment, system statistics, and a full activity log with CSV export.</p>
+  <div class="highlight">Admin Panel is protected by a dedicated AdminGuard — any attempt to access it with a non-admin JWT returns 403 Forbidden.</div>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">User Management</span><span class="feature-desc">View all platform users with search, filter by role, and pagination; see user details and activity</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Role Assignment</span><span class="feature-desc">Promote or demote users between ADMIN, MANAGER, and EMPLOYEE roles; changes take effect immediately</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">User Deletion</span><span class="feature-desc">Permanently delete user accounts with cascading cleanup of associated data per retention policy</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Admin-Only Access</span><span class="feature-desc">All admin endpoints protected by RolesGuard with ADMIN role requirement; no exceptions</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">System Stats</span><span class="feature-desc">Platform-wide statistics — total users by role, active projects, open tickets, storage usage</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Activity Log</span><span class="feature-desc">Complete audit trail of all significant platform actions with user, action type, timestamp, and metadata</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">CSV Export</span><span class="feature-desc">Export activity logs and user lists to CSV for compliance reporting and external analysis</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 22: Settings -->
+<div class="section-page page" id="s22">
+  <div class="section-header">
+    <div class="section-num">22</div>
+    <div class="section-title">Settings</div>
+  </div>
+  <p class="section-desc">Comprehensive settings covering personal profile, security, appearance, notifications, and localization. Team leaders also have access to team-specific settings from this section.</p>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Profile Settings</span><span class="feature-desc">Update name, avatar, bio, department, designation, phone, and other profile fields</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Password Change</span><span class="feature-desc">Secure password update requiring current password verification; new password strength validation</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Theme Selection</span><span class="feature-desc">Choose between Light, Dark, and System (follows OS preference) themes; persisted per user</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Notification Preferences</span><span class="feature-desc">Per-category toggles for in-app and email notifications — granular control over what triggers alerts</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Language &amp; Timezone</span><span class="feature-desc">Set preferred language and timezone; all dates and times displayed in the user's local timezone</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Team Settings</span><span class="feature-desc">Team leaders can update team name, description, avatar, and member role assignments from Settings</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Account Deletion</span><span class="feature-desc">Users can request account deletion; requires confirmation and triggers admin notification</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 23: Video Conferencing -->
+<div class="section-page page" id="s23">
+  <div class="section-header">
+    <div class="section-num">23</div>
+    <div class="section-title">Video Conferencing</div>
+  </div>
+  <p class="section-desc">Integrated video conferencing powered by Jitsi Meet, embedded directly in the team workspace. Team members are notified when a call starts, and meetings are tracked in the team's Meetings tab.</p>
+  <ul class="feature-list">
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Jitsi Meet Embedded</span><span class="feature-desc">Jitsi Meet iframe embedded directly in the platform — no external app or plugin required</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Team Notifications</span><span class="feature-desc">When a call starts, all team members receive an in-app notification with a join button</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Email Alerts</span><span class="feature-desc">Email sent to team members with meeting details and a direct join link when a call is initiated</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Shareable Link</span><span class="feature-desc">Generate a shareable meeting link that can be sent to external participants outside the platform</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Meetings Tab</span><span class="feature-desc">Dedicated Meetings tab in the team workspace showing past and upcoming meetings with notes</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Meeting Notes Integration</span><span class="feature-desc">Meeting notes created in Team Management are linked to video conference sessions for context</span></li>
+    <li class="feature-item"><span class="feature-check">✓</span><span class="feature-name">Team-Scoped Rooms</span><span class="feature-desc">Each team gets a unique Jitsi room name derived from the team ID — no room collisions between teams</span></li>
+  </ul>
+</div>
+
+<!-- SECTION 24: Technical Architecture -->
+<div class="section-page page" id="s24">
+  <div class="section-header">
+    <div class="section-num">24</div>
+    <div class="section-title">Technical Architecture</div>
+  </div>
+  <p class="section-desc">Complete technical reference for the ESMP platform — full tech stack, all 32 API modules, and the 50+ database models defined in the Prisma schema.</p>
+  <table>
+    <thead><tr><th>Component</th><th>Technology</th><th>Version / Notes</th></tr></thead>
+    <tbody>
+      <tr><td>API Framework</td><td>NestJS</td><td>v10, modular architecture, decorators</td></tr>
+      <tr><td>Frontend</td><td>Next.js</td><td>v14, App Router, RSC + Client Components</td></tr>
+      <tr><td>Language</td><td>TypeScript</td><td>Strict mode, full type safety</td></tr>
+      <tr><td>Database</td><td>PostgreSQL</td><td>v15, hosted on Supabase</td></tr>
+      <tr><td>ORM</td><td>Prisma</td><td>v5, migrations, type-safe client</td></tr>
+      <tr><td>Storage</td><td>Supabase Storage</td><td>S3-compatible, signed URLs</td></tr>
+      <tr><td>Auth</td><td>JWT + Passport.js</td><td>RS256, role claims, WS guard</td></tr>
+      <tr><td>Real-Time</td><td>Socket.IO</td><td>v4, multiple namespaced gateways</td></tr>
+      <tr><td>Email</td><td>Nodemailer</td><td>Gmail SMTP, HTML templates</td></tr>
+      <tr><td>Monorepo</td><td>Turborepo</td><td>Parallel builds, remote caching</td></tr>
+      <tr><td>UI Components</td><td>shadcn/ui + Radix UI</td><td>Accessible, themeable components</td></tr>
+      <tr><td>Styling</td><td>Tailwind CSS</td><td>v3, custom design tokens</td></tr>
+      <tr><td>State</td><td>React Query + Zustand</td><td>Server state + client state</td></tr>
+      <tr><td>Video</td><td>Jitsi Meet</td><td>Self-hosted compatible, iframe embed</td></tr>
+      <tr><td>Validation</td><td>class-validator + Zod</td><td>API DTOs + frontend forms</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- API Modules & DB Models (continuation of Section 24) -->
+<div class="section-page page" style="page-break-after: always;">
+  <div class="section-header">
+    <div class="section-num">24</div>
+    <div class="section-title">API Modules (32 Total)</div>
+  </div>
+  <p class="section-desc">All 32 NestJS modules in the ESMP API, each with its own controller, service, and module file.</p>
+  <table>
+    <thead><tr><th>#</th><th>Module</th><th>Key Responsibilities</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>auth</td><td>OTP, JWT, login, register, password change</td></tr>
+      <tr><td>2</td><td>admin</td><td>User management, role assignment, system stats, CSV export</td></tr>
+      <tr><td>3</td><td>analytics</td><td>Global/team analytics, snapshots, report generation</td></tr>
+      <tr><td>4</td><td>approvals-workflow</td><td>Request submission, approval chains, status transitions</td></tr>
+      <tr><td>5</td><td>audit</td><td>Audit log recording and retrieval</td></tr>
+      <tr><td>6</td><td>bugs</td><td>Bug CRUD, status workflow, assignment, comments</td></tr>
+      <tr><td>7</td><td>calendar</td><td>Calendar events, task/milestone date aggregation</td></tr>
+      <tr><td>8</td><td>chat</td><td>Global DM/group chat, Socket.IO gateway, message CRUD</td></tr>
+      <tr><td>9</td><td>client-portal</td><td>Client accounts, deliverables, milestones, feedback</td></tr>
+      <tr><td>10</td><td>company-announcements</td><td>Announcement CRUD, pin, expiry, type filtering</td></tr>
+      <tr><td>11</td><td>employees</td><td>Employee CRUD, profiles, manager isolation</td></tr>
+      <tr><td>12</td><td>files</td><td>File upload, versioning, folders, comments, Supabase integration</td></tr>
+      <tr><td>13</td><td>knowledge-base</td><td>Article CRUD, publish control, search, view tracking</td></tr>
+      <tr><td>14</td><td>mail</td><td>Email sending service, HTML templates, Nodemailer</td></tr>
+      <tr><td>15</td><td>notifications</td><td>In-app notifications, email triggers, preferences</td></tr>
+      <tr><td>16</td><td>prisma</td><td>Prisma client singleton, database connection management</td></tr>
+      <tr><td>17</td><td>profile</td><td>Profile read/update, avatar upload</td></tr>
+      <tr><td>18</td><td>projects</td><td>Project CRUD, milestones, client association</td></tr>
+      <tr><td>19</td><td>reports</td><td>7 report types, data aggregation, export</td></tr>
+      <tr><td>20</td><td>search</td><td>Global cross-entity full-text search</td></tr>
+      <tr><td>21</td><td>settings</td><td>User settings, theme, language, timezone, notification prefs</td></tr>
+      <tr><td>22</td><td>tasks</td><td>Task CRUD, assignment, status workflow, comments, history</td></tr>
+      <tr><td>23</td><td>team-chat</td><td>Team-scoped chat, pin messages, read receipts, search</td></tr>
+      <tr><td>24</td><td>team-collab</td><td>Team workspace, meeting notes, progress updates, video calls</td></tr>
+      <tr><td>25</td><td>team-tasks</td><td>Team task management, submissions, reviews, workflow panel</td></tr>
+      <tr><td>26</td><td>teams</td><td>Team CRUD, invite system, member roles, activity log</td></tr>
+      <tr><td>27</td><td>tickets</td><td>Ticket CRUD, auto-numbering, categories, assignment, comments</td></tr>
+      <tr><td>28</td><td>time-tracking</td><td>Time entries, billable flag, weekly summary, history</td></tr>
+      <tr><td>29</td><td>workload</td><td>Workload calculation, utilization, status indicators</td></tr>
+      <tr><td>30</td><td>announcements</td><td>Team-scoped announcements (separate from company announcements)</td></tr>
+      <tr><td>31</td><td>ws-jwt</td><td>WebSocket JWT authentication guard</td></tr>
+      <tr><td>32</td><td>app</td><td>Root module, global middleware, CORS, Swagger setup</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- DB Models Section -->
+<div class="section-page page" style="page-break-after: never;">
+  <div class="section-header">
+    <div class="section-num">24</div>
+    <div class="section-title">Database Models (50+)</div>
+  </div>
+  <p class="section-desc">All Prisma models in the ESMP PostgreSQL schema, organized by domain area.</p>
+  <table>
+    <thead><tr><th>Domain</th><th>Models</th></tr></thead>
+    <tbody>
+      <tr><td>Auth &amp; Users</td><td>User, OtpCode, AuditLog, UserSettings, UserProfile</td></tr>
+      <tr><td>Projects &amp; Tasks</td><td>Project, Task, TaskComment, TaskHistory, TaskSubmission, TaskReview, Milestone</td></tr>
+      <tr><td>Teams</td><td>Team, TeamMember, TeamInvite, TeamAnnouncement, TeamActivityLog, MeetingNote, ProgressUpdate</td></tr>
+      <tr><td>Chat (Global)</td><td>ChatConversation, ChatParticipant, ChatMessage, ChatRequest</td></tr>
+      <tr><td>Chat (Team)</td><td>TeamChatMessage, TeamChatReadReceipt, TeamChatPinnedMessage</td></tr>
+      <tr><td>Tickets</td><td>Ticket, TicketComment, TicketHistory, TicketAttachment</td></tr>
+      <tr><td>Bugs</td><td>Bug, BugComment, BugHistory</td></tr>
+      <tr><td>Approvals</td><td>ApprovalRequest, ApprovalStep, ApprovalComment</td></tr>
+      <tr><td>Notifications</td><td>Notification, NotificationPreference</td></tr>
+      <tr><td>Files</td><td>File, FileVersion, FileComment, Folder</td></tr>
+      <tr><td>Knowledge Base</td><td>KbArticle, KbArticleView, KbTag</td></tr>
+      <tr><td>Announcements</td><td>CompanyAnnouncement, TeamAnnouncement</td></tr>
+      <tr><td>Time Tracking</td><td>TimeEntry</td></tr>
+      <tr><td>Analytics</td><td>AnalyticsSnapshot, Report</td></tr>
+      <tr><td>Client Portal</td><td>ClientAccount, ClientProject, Deliverable, ClientFeedback, ClientMilestone</td></tr>
+      <tr><td>Calendar</td><td>CalendarEvent</td></tr>
+      <tr><td>Video</td><td>VideoMeeting, VideoMeetingParticipant</td></tr>
+      <tr><td>Workload</td><td>WorkloadSnapshot</td></tr>
+    </tbody>
+  </table>
+  <div class="highlight">All models use UUID primary keys, include createdAt/updatedAt timestamps, and are fully typed via the Prisma-generated TypeScript client.</div>
+</div>
+
+<!-- Save as PDF Button -->
+<button class="pdf-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
+
+</body>
+</html>
