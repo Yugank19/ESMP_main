@@ -95,10 +95,10 @@ export default function TicketsPage() {
   }
 
   const statCards = [
-    { label: 'Total Requests', value: stats?.total ?? 0, icon: Ticket, color: 'text-blue-600 bg-blue-50 border-blue-100', desc: 'Global queue synchronization' },
-    { label: 'Unresolved', value: stats?.open ?? 0, icon: AlertCircle, color: 'text-orange-600 bg-orange-50 border-orange-100', desc: 'Critical path intervention needed' },
-    { label: 'Operational', value: stats?.inProgress ?? 0, icon: Activity, color: 'text-indigo-600 bg-indigo-50 border-indigo-100', desc: 'Active triage and resolution' },
-    { label: 'Neutralized', value: stats?.resolved ?? 0, icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', desc: 'Successfully closed protocols' },
+    { label: 'Total Requests', value: stats?.total ?? 0, icon: Ticket, color: 'text-blue-600 bg-blue-50 border-blue-100', desc: 'All submitted requests' },
+    { label: 'Unresolved', value: stats?.open ?? 0, icon: AlertCircle, color: 'text-orange-600 bg-orange-50 border-orange-100', desc: 'Requests needing attention' },
+    { label: 'Operational', value: stats?.inProgress ?? 0, icon: Activity, color: 'text-indigo-600 bg-indigo-50 border-indigo-100', desc: 'Currently being worked on' },
+    { label: 'Resolved', value: stats?.resolved ?? 0, icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-50 border-emerald-100', desc: 'Successfully resolved' },
   ];
 
   return (
@@ -111,8 +111,8 @@ export default function TicketsPage() {
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Service Desk / Support Terminal</h1>
-            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest">Enterprise support protocols and resource allocation</p>
+            <h1 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Service Requests</h1>
+            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest">Submit and track support requests</p>
           </div>
         </div>
         <button onClick={() => setShowCreate(true)}
@@ -145,39 +145,39 @@ export default function TicketsPage() {
         <div className="flex items-center justify-between px-6 py-4 bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
             <div className="flex items-center gap-4">
                  <div className="px-3 py-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2 border-r border-[var(--border)] pr-6">
-                     <Filter className="h-3.5 w-3.5" /> Protocol Filter
+                     <Filter className="h-3.5 w-3.5" /> Filter by Status
                  </div>
                  <div className="relative group">
                     <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); load(); }}
                         className="bg-white border border-[var(--border)] rounded-[3px] px-8 py-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-primary)] focus:border-[var(--color-primary)] outline-none appearance-none cursor-pointer">
-                        <option value="">ALL_PROTOCOLS</option>
-                        {STATUSES.map(s => <option key={s} value={s}>{s}_STATE</option>)}
+                        <option value="">All Statuses</option>
+                        {STATUSES.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
                     </select>
                     <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-300 pointer-events-none rotate-90" />
                  </div>
             </div>
             <div className="hidden md:flex items-center gap-6">
-                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">{loading ? 'Synchronizing Data Grid...' : `Active Identification: ${tickets.length} Units`}</span>
+                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">{loading ? 'Loading...' : `${tickets.length} request${tickets.length !== 1 ? `s` : ``}`}</span>
             </div>
         </div>
 
         {loading ? (
              <div className="flex flex-col items-center justify-center py-32 gap-4 opacity-40">
                   <div className="h-8 w-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
-                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Executing Data Stream Query...</span>
+                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Loading...</span>
              </div>
         ) : tickets.length === 0 ? (
           <div className="p-32 text-center flex flex-col items-center opacity-30">
             <HelpCircle className="h-20 w-20 text-[var(--text-muted)] mb-6 stroke-[1px]" />
-            <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Support Queue Clear</h3>
-            <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">No active support requests detected within current scope.</p>
+            <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">No Requests Yet</h3>
+            <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">You haven't submitted any service requests yet.</p>
           </div>
         ) : (
           <div className="overflow-x-auto no-scrollbar">
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
-                  {['Identifier', 'Request Intel', 'Category', 'Priority', 'Current State', 'Technician', 'Created On'].map(h => (
+                  {['Ticket #', 'Title', 'Category', 'Priority', 'Status', 'Assigned To', 'Created'].map(h => (
                     <th key={h} className="text-left px-6 py-4 text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] first:pl-8">{h}</th>
                   ))}
                 </tr>
@@ -235,7 +235,7 @@ export default function TicketsPage() {
             <div className="flex items-center justify-between px-6 py-4 bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
                   <Plus className="h-4 w-4 text-[var(--color-primary)]" />
-                  <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">New Service Protocol</h2>
+                  <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">New Service Request</h2>
               </div>
               <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-[3px] hover:bg-white hover:border-[var(--border)] border border-transparent transition-all">
                   <X className="h-4 w-4 text-[var(--text-muted)]" />
@@ -243,25 +243,25 @@ export default function TicketsPage() {
             </div>
             <form onSubmit={handleCreate} className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-8">
               <div>
-                 <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Broadcast Service Request</h3>
-                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Create formalized support request for resource allocation.</p>
+                 <h3 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">Submit a Service Request</h3>
+                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Describe your issue and we'll route it to the right team.</p>
               </div>
 
               <div className="space-y-6">
                   <div className="space-y-1.5">
-                    <label className={labelClass}>Request Designation (Title) *</label>
-                    <input required value={form.title} placeholder="SERVICE_IDENTIFIER_OMEGA" onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                    <label className={labelClass}>Title *</label>
+                    <input required value={form.title} placeholder="Brief description of your request" onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                       className={cn(inputClass, "uppercase")} />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
-                      <label className={labelClass}>Operation Sector (Category)</label>
+                      <label className={labelClass}>Category</label>
                       <div className="relative">
                           <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
                           <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                             className={cn(inputClass, "pl-10 appearance-none bg-slate-50")}>
-                            {CATEGORIES.map(c => <option key={c} value={c}>{c}_UNIT</option>)}
+                            {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                           </select>
                       </div>
                     </div>
@@ -271,29 +271,29 @@ export default function TicketsPage() {
                           <Zap className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-400" />
                           <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
                             className={cn(inputClass, "pl-10 appearance-none bg-slate-50")}>
-                            {PRIORITIES.map(p => <option key={p} value={p}>{p}_PRIORITY</option>)}
+                            {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
                           </select>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className={labelClass}>Technical Requirements / Description *</label>
-                    <textarea required rows={4} value={form.description} placeholder="Provide comprehensive justification and heuristic details..." onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                    <label className={labelClass}>Description *</label>
+                    <textarea required rows={4} value={form.description} placeholder="Describe the issue in detail..." onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                       className={cn(inputClass, "resize-none font-medium normal-case")} />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
-                      <label className={labelClass}>Target Department</label>
+                      <label className={labelClass}>Department</label>
                       <div className="relative">
                           <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
-                          <input value={form.department} placeholder="E.G. SYSTEMS_OPS" onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
+                          <input value={form.department} placeholder="e.g. Engineering" onChange={e => setForm(f => ({ ...f, department: e.target.value }))}
                             className={cn(inputClass, "pl-10 uppercase")} />
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className={labelClass}>Termination Deadline</label>
+                      <label className={labelClass}>Due Date</label>
                       <div className="relative">
                           <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
                           <input type="date" value={form.due_date} onChange={e => setForm(f => ({ ...f, due_date: e.target.value }))}
@@ -304,8 +304,8 @@ export default function TicketsPage() {
               </div>
 
               <div className="flex gap-4 pt-6 border-t border-[var(--border)]">
-                <button type="submit" className="jira-button jira-button-primary h-12 flex-1 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">Transmit Request</button>
-                <button type="button" onClick={() => setShowCreate(false)} className="jira-button border border-[var(--border)] h-12 flex-1 font-bold uppercase text-[10px] bg-white text-[var(--text-muted)]">Abort</button>
+                <button type="submit" className="jira-button jira-button-primary h-12 flex-1 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">Submit Request</button>
+                <button type="button" onClick={() => setShowCreate(false)} className="jira-button border border-[var(--border)] h-12 flex-1 font-bold uppercase text-[10px] bg-white text-[var(--text-muted)]">Cancel</button>
               </div>
             </form>
           </div>
@@ -319,7 +319,7 @@ export default function TicketsPage() {
             <div className="px-8 py-6 bg-[var(--bg-surface-2)] border-b border-[var(--border)] sticky top-0 z-10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                      <Hash className="h-4 w-4 text-[var(--color-primary)]" />
-                     <span className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">PROTOCOL_ID: {selected.ticket_no}</span>
+                     <span className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Ticket {selected.ticket_no}</span>
                 </div>
                 <div className="flex items-center gap-3">
                     {(user?.roles?.[0]?.toUpperCase() === 'ADMIN' || user?.roles?.[0]?.toUpperCase() === 'MANAGER' || selected.created_by === user?.id) && (
@@ -338,13 +338,13 @@ export default function TicketsPage() {
                 <div className="space-y-4">
                     <div className="flex items-center gap-3 flex-wrap">
                          <span className={cn("px-2.5 py-1 text-[9px] font-extrabold border rounded-[2px] uppercase tracking-widest shadow-sm", STATUS_COLORS[selected.status])}>
-                             STATE: {selected.status}
+                             {selected.status.replace(/_/g, ' ')}
                          </span>
                          <span className={cn("px-2.5 py-1 text-[9px] font-extrabold border rounded-[2px] uppercase tracking-widest shadow-sm", PRIORITY_COLORS[selected.priority])}>
-                             {selected.priority} RESPONSE
+                             {selected.priority}
                          </span>
                          <span className="px-2.5 py-1 text-[9px] font-extrabold border border-slate-200 bg-slate-50 text-slate-500 rounded-[2px] uppercase tracking-widest shadow-sm">
-                             {selected.category} UNIT
+                             {selected.category}
                          </span>
                     </div>
                     <h2 className="text-2xl font-bold text-[var(--text-primary)] leading-tight">{selected.title}</h2>
@@ -357,7 +357,7 @@ export default function TicketsPage() {
                 <div className="grid grid-cols-2 gap-8 pt-8 border-t border-slate-100">
                     <div className="space-y-3">
                          <h4 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] flex items-center gap-2">
-                             <User className="h-3.5 w-3.5 text-blue-400" /> Originator
+                             <User className="h-3.5 w-3.5 text-blue-400" /> Submitted By
                          </h4>
                          <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center text-[10px] font-extrabold text-slate-500">
@@ -368,7 +368,7 @@ export default function TicketsPage() {
                     </div>
                     <div className="space-y-3">
                          <h4 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] flex items-center gap-2">
-                             <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> Technician
+                             <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> Assigned To
                          </h4>
                          <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-[10px] font-extrabold text-[var(--color-primary)]">
@@ -380,7 +380,7 @@ export default function TicketsPage() {
                     {selected.department && (
                         <div className="space-y-3">
                              <h4 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] flex items-center gap-2">
-                                 <Building className="h-3.5 w-3.5 text-slate-400" /> Sector
+                                 <Building className="h-3.5 w-3.5 text-slate-400" /> Department
                              </h4>
                              <span className="text-[11px] font-bold text-[var(--text-primary)] uppercase ml-5.5">{selected.department}</span>
                         </div>
@@ -398,7 +398,7 @@ export default function TicketsPage() {
                 {/* Protocol Execution Controls */}
                 <div className="space-y-4 pt-8 border-t border-[var(--border)]">
                     <h4 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                        <Zap className="h-4 w-4 text-[var(--color-primary)]" /> Transition State
+                        <Zap className="h-4 w-4 text-[var(--color-primary)]" /> Update Status
                     </h4>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {STATUSES.map(s => (
@@ -419,14 +419,14 @@ export default function TicketsPage() {
                 {/* Analysis Intelligence Ledger */}
                 <div className="space-y-6 pt-12 border-t border-[var(--border)] mb-12">
                      <h4 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-4">
-                         <MessageSquare className="h-4 w-4 text-[var(--color-primary)]" /> Knowledge Base / Logs ({selected.comments?.length || 0})
+                         <MessageSquare className="h-4 w-4 text-[var(--color-primary)]" /> Comments ({selected.comments?.length || 0})
                          <div className="h-px flex-1 bg-slate-100" />
                      </h4>
                      
                      <div className="space-y-6">
                         {(selected.comments || []).length === 0 ? (
                             <div className="py-12 bg-slate-50 border border-dashed border-[var(--border)] rounded-[3px] text-center opacity-40">
-                                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">No Analysis Logged</p>
+                                 <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">No comments yet</p>
                             </div>
                         ) : (
                           (selected.comments || []).map((c: any) => (
@@ -449,7 +449,7 @@ export default function TicketsPage() {
                      </div>
 
                      <form onSubmit={handleComment} className="flex gap-3 pt-6 sticky bottom-0 bg-white pb-8">
-                        <input value={comment} onChange={e => setComment(e.target.value)} placeholder="Append intelligence to ledger..."
+                        <input value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment..."
                           className={cn(inputClass, "h-12")} />
                         <button type="submit" className="jira-button jira-button-primary h-12 px-6 gap-2 font-bold uppercase text-[10px] flex items-center justify-center">
                             <Send className="h-4 w-4" /> Post

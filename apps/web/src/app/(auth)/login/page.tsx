@@ -22,7 +22,7 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.email.endsWith('@gmail.com')) {
-            setError('PROTOCOL_MISMATCH: ONLY @GMAIL.COM DOMAINS AUTHORIZED.');
+            setError('Only @gmail.com email addresses are allowed.');
             return;
         }
         setLoading(true);
@@ -39,7 +39,7 @@ export default function LoginPage() {
                 router.push('/dashboard');
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'AUTHENTICATION_FAILURE: INVALID CREDENTIALS.');
+            setError(err.response?.data?.message || 'Invalid email or password. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -47,24 +47,24 @@ export default function LoginPage() {
 
     return (
         <div className="w-full space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            {/* Mission Entry Header */}
+            {/* Header */}
             <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-blue-500/10 md:bg-blue-50/50 border border-blue-400/20 md:border-blue-100 text-blue-400 md:text-blue-600 text-[9px] font-black uppercase tracking-[0.2em]">
                     <Fingerprint className="h-3 w-3" />
-                    Secure_Access_Hub_V5
+                    Secure Sign In
                 </div>
                 <div>
                     <h1 className="text-2xl md:text-3xl font-black text-white md:text-slate-900 tracking-tighter leading-none uppercase">
-                        Enterprise<br />
-                        Registry Login
+                        Welcome<br />
+                        Back
                     </h1>
                     <p className="text-slate-300 md:text-slate-400 text-[9px] md:text-[10px] uppercase font-black tracking-widest mt-2 flex items-center gap-2">
-                        <Activity className="h-3 w-3 text-emerald-400 md:text-emerald-500" /> System_Online: Enter personnel credentials
+                        <Activity className="h-3 w-3 text-emerald-400 md:text-emerald-500" /> Sign in to your account
                     </p>
                 </div>
             </div>
 
-            {/* Auth Terminal Form */}
+            {/* Login Form */}
             <form onSubmit={handleLogin} className="space-y-5">
                 {error && (
                     <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-[3px] text-[10px] font-black uppercase tracking-widest animate-in shake duration-500 flex items-center gap-3 shadow-md shadow-red-100/50">
@@ -75,14 +75,14 @@ export default function LoginPage() {
 
                 <div className="space-y-1.5">
                     <label htmlFor="email" className={labelClass}>
-                        Personnel_Ident_Email
+                        Email Address
                     </label>
                     <div className="relative group">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
                         <input
                             id="email"
                             type="email"
-                            placeholder="UNIT_NAME@GMAIL.COM"
+                            placeholder="YOU@GMAIL.COM"
                             className={inputClass}
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -94,11 +94,11 @@ export default function LoginPage() {
                 <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
                         <label htmlFor="password" className={labelClass}>
-                            Auth_Cipher_Key
+                            Password
                         </label>
-                        <button type="button" className="text-[9px] text-blue-600 hover:text-blue-700 font-black uppercase tracking-widest transition-opacity hover:opacity-100 opacity-60">
-                            Forgot_Key?
-                        </button>
+                        <Link href="/forgot-password" className="text-[9px] text-blue-600 hover:text-blue-700 font-black uppercase tracking-widest transition-opacity hover:opacity-100 opacity-60">
+                            Forgot Password?
+                        </Link>
                     </div>
                     <div className="relative group">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
@@ -122,12 +122,12 @@ export default function LoginPage() {
                     {loading ? (
                         <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                        <>Log In <ArrowRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" /></>
+                        <>Sign In <ArrowRight className="h-5 w-5 group-hover:translate-x-1.5 transition-transform" /></>
                     )}
                 </button>
             </form>
 
-            {/* Tactical Divider */}
+            {/* Divider */}
             <div className="relative py-2">
                 <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-white/10 md:border-slate-100" />
@@ -143,15 +143,15 @@ export default function LoginPage() {
                 href="/register"
                 className="w-full h-11 border-2 border-white/10 md:border-slate-50 bg-white/5 md:bg-slate-50/50 hover:bg-white/10 md:hover:bg-white text-white/60 md:text-slate-500 hover:text-white md:hover:text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] rounded-[3px] transition-all flex items-center justify-center gap-3 group"
             >
-                <Fingerprint className="h-4 w-4 group-hover:rotate-12 transition-transform" /> Register_New_Personnel
+                <Fingerprint className="h-4 w-4 group-hover:rotate-12 transition-transform" /> Create an Account
             </Link>
 
-            {/* Compliance Segments */}
+            {/* Security Info */}
             <div className="grid grid-cols-1 gap-3 pt-6 border-t border-slate-50">
                 <div className="flex items-center justify-between px-4 py-3 bg-slate-50/30 border border-slate-100 rounded-[3px]">
                     <div className="flex items-center gap-3">
                         <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PCI_DSS_LEVEL_1_CERT</span>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Secure &amp; Encrypted Connection</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-emerald-500 shadow-sm" />
@@ -162,11 +162,11 @@ export default function LoginPage() {
                 <div className="flex items-center justify-center gap-6 opacity-30">
                     <div className="flex items-center gap-1.5">
                         <Terminal className="h-3 w-3" />
-                        <span className="text-[8px] font-black uppercase tracking-tighter">TLS_1.3_AUTH_V3</span>
+                        <span className="text-[8px] font-black uppercase tracking-tighter">TLS 1.3 Encrypted</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <Zap className="h-3 w-3" />
-                        <span className="text-[8px] font-black uppercase tracking-tighter">99.99_UPTIME_CMD</span>
+                        <span className="text-[8px] font-black uppercase tracking-tighter">99.99% Uptime</span>
                     </div>
                 </div>
             </div>

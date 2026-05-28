@@ -86,7 +86,7 @@ export default function DashboardPage() {
             link: '/dashboard/tasks?status=DONE'
         },
         {
-            label: 'Total Scope',
+            label: 'Total Tasks',
             count: analytics?.totalTasks ?? 0,
             icon: ListTodo,
             color: 'text-[var(--text-primary)]',
@@ -146,7 +146,7 @@ export default function DashboardPage() {
                     {/* Activity Feed */}
                     <div className="card h-full">
                         <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
-                            <h2 className="text-sm font-bold uppercase tracking-tight text-[var(--text-primary)]">Stream Activity</h2>
+                            <h2 className="text-sm font-bold uppercase tracking-tight text-[var(--text-primary)]">Recent Activity</h2>
                             <Link href="/dashboard/audit" className="text-xs font-bold text-[var(--color-primary)] hover:underline">View Log</Link>
                         </div>
                         <div className="p-6">

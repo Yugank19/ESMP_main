@@ -111,8 +111,8 @@ export default function ClientManagementPage() {
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Client Engagement Hub</h1>
-            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest">Management of stakeholder accounts, project deliverables, and mission milestones</p>
+            <h1 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Client Management</h1>
+            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest">Manage client accounts, project deliverables, and milestones</p>
           </div>
         </div>
         <button onClick={() => setAddClientOpen(true)}
@@ -124,10 +124,10 @@ export default function ClientManagementPage() {
       {/* High-Fidelity Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Active Stakeholders", value: clients.length, icon: Users, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100", desc: "Registered point-of-contact units" },
-          { label: "Engaged Projects", value: clients.filter(c => c.is_active).length, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100", desc: "Live operational environments" },
-          { label: "Triage Requests", value: clients.flatMap((c: any) => c.deliverables || []).filter((d: any) => d.status === "PENDING_REVIEW").length, icon: Clock, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-100", desc: "Deliverables awaiting authorization" },
-          { label: "Partner Entities", value: new Set(clients.map((c: any) => c.company_name)).size, icon: Building2, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100", desc: "Unique corporate organizations" },
+          { label: "Total Clients", value: clients.length, icon: Users, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100", desc: "Registered client accounts" },
+          { label: "Active Projects", value: clients.filter(c => c.is_active).length, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100", desc: "Currently active projects" },
+          { label: "Pending Reviews", value: clients.flatMap((c: any) => c.deliverables || []).filter((d: any) => d.status === "PENDING_REVIEW").length, icon: Clock, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-100", desc: "Deliverables awaiting approval" },
+          { label: "Companies", value: new Set(clients.map((c: any) => c.company_name)).size, icon: Building2, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-100", desc: "Unique client organizations" },
         ].map(s => (
           <div key={s.label} className="card p-6 border-[var(--border)] hover:border-[var(--color-primary)] transition-all group">
             <div className="flex items-start justify-between mb-4">
@@ -150,30 +150,30 @@ export default function ClientManagementPage() {
         <div className="px-8 py-5 bg-[var(--bg-surface-2)] border-b border-[var(--border)] flex items-center justify-between">
             <div className="flex items-center gap-3">
                  <Terminal className="h-4 w-4 text-[var(--color-primary)]" />
-                 <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Stakeholder Identity Grid</h2>
+                 <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">All Clients</h2>
             </div>
             <div className="flex items-center gap-4">
-                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{loading ? 'Synchronizing Intelligence...' : `Active Units: ${clients.length}`}</span>
+                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{loading ? 'Loading...' : `Total: ${clients.length}`}</span>
             </div>
         </div>
 
         {loading ? (
              <div className="flex flex-col items-center justify-center py-32 gap-4 opacity-40">
                   <div className="h-8 w-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
-                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Executing Data Stream Query...</span>
+                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Loading...</span>
              </div>
         ) : clients.length === 0 ? (
           <div className="p-32 text-center flex flex-col items-center opacity-30">
             <Globe className="h-20 w-20 text-[var(--text-muted)] mb-6 stroke-[1px]" />
-            <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Zero Stakeholder Trace</h3>
-            <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">No client accounts detected within current sector synchronization.</p>
+            <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">No Clients Yet</h3>
+            <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">No client accounts have been created yet.</p>
           </div>
         ) : (
           <div className="overflow-x-auto no-scrollbar">
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
-                  {["Engagement Entity", "Organization", "Mission Scope", "Auth Protocol", "Deliverables", "Status", "Deployment Controls"].map(h => (
+                  {["Client", "Company", "Project", "Access Level", "Deliverables", "Status", "Actions"].map(h => (
                     <th key={h} className="text-left px-8 py-5 text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">{h}</th>
                   ))}
                 </tr>
@@ -216,7 +216,7 @@ export default function ClientManagementPage() {
                       </td>
                       <td className="px-8 py-5">
                         <span className={cn("px-2.5 py-1 text-[9px] font-extrabold border rounded-[2px] uppercase tracking-widest shadow-sm", st.bg, st.text, st.border)}>
-                          {c.is_active ? "OPERATIONAL" : "DECOMMISSIONED"}
+                          {c.is_active ? "ACTIVE" : "INACTIVE"}
                         </span>
                       </td>
                       <td className="px-8 py-5">
@@ -255,7 +255,7 @@ export default function ClientManagementPage() {
           <div className="bg-white rounded-[3px] shadow-2xl w-full max-w-xl overflow-hidden border border-[var(--border)] animate-in zoom-in-95 duration-200 flex flex-col">
             <div className="px-8 py-6 bg-[var(--bg-surface-2)] border-b border-[var(--border)] flex items-center justify-between">
               <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
-                  <Plus className="h-4 w-4 text-[var(--color-primary)]" /> Add Stakeholder Entity
+                  <Plus className="h-4 w-4 text-[var(--color-primary)]" /> Add New Client
               </h2>
               <button onClick={() => { setAddClientOpen(false); setError(""); }} className="p-1.5 rounded-[3px] hover:bg-white border border-transparent transition-all">
                 <X className="h-4 w-4 text-slate-400" />
@@ -270,20 +270,20 @@ export default function ClientManagementPage() {
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Stakeholder Name *</label>
-                  <input required value={clientForm.name} placeholder="ENTITY_HUMAN_IDENTIFIER" onChange={e => setClientForm(f => ({ ...f, name: e.target.value }))}
+                  <label className={labelClass}>Client Name *</label>
+                  <input required value={clientForm.name} placeholder="Full Name" onChange={e => setClientForm(f => ({ ...f, name: e.target.value }))}
                     className={cn(inputClass, "uppercase")} />
                 </div>
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Corporate Group *</label>
-                  <input required value={clientForm.company_name} placeholder="ORGANIZATION_ALPHA" onChange={e => setClientForm(f => ({ ...f, company_name: e.target.value }))}
+                  <label className={labelClass}>Company Name *</label>
+                  <input required value={clientForm.company_name} placeholder="Company Name" onChange={e => setClientForm(f => ({ ...f, company_name: e.target.value }))}
                     className={cn(inputClass, "uppercase")} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Communication Gmail *</label>
+                  <label className={labelClass}>Email Address *</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
                     <input required type="email" value={clientForm.email} placeholder="CLIENT@GMAIL.COM" onChange={e => setClientForm(f => ({ ...f, email: e.target.value }))}
@@ -291,32 +291,32 @@ export default function ClientManagementPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Tactical Phine Link</label>
-                  <input value={clientForm.phone} placeholder="+X XXX-XXXX" onChange={e => setClientForm(f => ({ ...f, phone: e.target.value }))}
+                  <label className={labelClass}>Phone Number</label>
+                  <input value={clientForm.phone} placeholder="+1 555 0000" onChange={e => setClientForm(f => ({ ...f, phone: e.target.value }))}
                     className={inputClass} />
                 </div>
               </div>
 
               <div className="space-y-6 pt-4 border-t border-slate-50">
                   <div className="space-y-1.5">
-                    <label className={labelClass}>Mission Designation (Project) *</label>
-                    <input required value={clientForm.project_name} placeholder="PROJECT_CODENAME_EPSILON" onChange={e => setClientForm(f => ({ ...f, project_name: e.target.value }))}
+                    <label className={labelClass}>Project Name *</label>
+                    <input required value={clientForm.project_name} placeholder="Project Name" onChange={e => setClientForm(f => ({ ...f, project_name: e.target.value }))}
                       className={cn(inputClass, "uppercase")} />
                   </div>
                   <div className="space-y-1.5">
-                    <label className={labelClass}>Mission Brief (Description)</label>
-                    <textarea rows={2} value={clientForm.description} placeholder="Provide tactical overview of engagement scope..." onChange={e => setClientForm(f => ({ ...f, description: e.target.value }))}
+                    <label className={labelClass}>Project Description</label>
+                    <textarea rows={2} value={clientForm.description} placeholder="Brief description of the project..." onChange={e => setClientForm(f => ({ ...f, description: e.target.value }))}
                       className={cn(inputClass, "resize-none font-medium normal-case")} />
                   </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className={labelClass}>Authorization Level</label>
+                <label className={labelClass}>Access Level</label>
                 <div className="relative">
                   <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
                   <select value={clientForm.access_type} onChange={e => setClientForm(f => ({ ...f, access_type: e.target.value }))}
                     className={cn(inputClass, "pl-11 appearance-none bg-slate-50")}>
-                    {ACCESS_TYPES.map(a => <option key={a} value={a}>{a}_PROTOCOL</option>)}
+                    {ACCESS_TYPES.map(a => <option key={a} value={a}>{a}</option>)}
                   </select>
                    <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 rotate-90" />
                 </div>
@@ -324,7 +324,7 @@ export default function ClientManagementPage() {
 
               <div className="p-4 bg-blue-50 border border-blue-100 rounded-[3px] border-l-4 border-l-blue-500">
                 <p className="text-[10px] font-bold text-blue-700 leading-relaxed uppercase tracking-widest">
-                  System will finalize encryption keys and transmit credentials to entity mailbox.
+                  Login credentials will be generated and sent to the client's email address.
                 </p>
               </div>
 
@@ -334,7 +334,7 @@ export default function ClientManagementPage() {
                   {saving ? "SAVING..." : "Save Client"}
                 </button>
                 <button type="button" onClick={() => { setAddClientOpen(false); setError(""); }}
-                  className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Abort</button>
+                  className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Cancel</button>
               </div>
             </form>
           </div>
@@ -347,29 +347,29 @@ export default function ClientManagementPage() {
           <div className="bg-white rounded-[3px] shadow-2xl w-full max-w-md overflow-hidden border border-[var(--border)] animate-in zoom-in-95 duration-200">
             <div className="px-8 py-6 bg-[var(--bg-surface-2)] border-b border-[var(--border)] flex items-center justify-between">
               <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
-                  <FileText className="h-4 w-4 text-[var(--color-primary)]" /> Append Deliverable
+                  <FileText className="h-4 w-4 text-[var(--color-primary)]" /> Add Deliverable
               </h2>
               <button onClick={() => { setDeliverableModal(null); setError(""); }}><X className="h-4 w-4 text-slate-400" /></button>
             </div>
             <form onSubmit={handleAddDeliverable} className="p-10 space-y-6">
               <div className="p-4 bg-slate-50 border border-[var(--border)] rounded-[3px]">
-                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Mission</p>
+                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Project</p>
                    <p className="text-[11px] font-bold text-[var(--text-primary)] uppercase">{deliverableModal.project_name}</p>
               </div>
 
               <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className={labelClass}>Deliverable Designation *</label>
-                    <input required value={deliverableForm.title} placeholder="ASSET_IDENTIFIER" onChange={e => setDeliverableForm(f => ({ ...f, title: e.target.value }))}
+                    <label className={labelClass}>Deliverable Title *</label>
+                    <input required value={deliverableForm.title} placeholder="Title" onChange={e => setDeliverableForm(f => ({ ...f, title: e.target.value }))}
                       className={cn(inputClass, "uppercase")} />
                   </div>
                   <div className="space-y-1.5">
-                    <label className={labelClass}>Technical Brief</label>
-                    <textarea rows={3} value={deliverableForm.description} placeholder="Provide technical documentation summary..." onChange={e => setDeliverableForm(f => ({ ...f, description: e.target.value }))}
+                    <label className={labelClass}>Description</label>
+                    <textarea rows={3} value={deliverableForm.description} placeholder="Describe this deliverable..." onChange={e => setDeliverableForm(f => ({ ...f, description: e.target.value }))}
                       className={cn(inputClass, "resize-none font-medium normal-case")} />
                   </div>
                   <div className="space-y-1.5">
-                    <label className={labelClass}>Revision Version</label>
+                    <label className={labelClass}>Version</label>
                     <input type="number" min="1" value={deliverableForm.version} onChange={e => setDeliverableForm(f => ({ ...f, version: e.target.value }))}
                       className={inputClass} />
                   </div>
@@ -378,7 +378,7 @@ export default function ClientManagementPage() {
               <div className="flex gap-4 pt-6 border-t border-slate-50">
                 <button type="submit" disabled={saving}
                   className="jira-button jira-button-primary h-12 flex-1 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">
-                  Broadcast Asset
+                  Add Deliverable
                 </button>
                 <button type="button" onClick={() => { setDeliverableModal(null); setError(""); }}
                   className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Cancel</button>
@@ -394,41 +394,41 @@ export default function ClientManagementPage() {
           <div className="bg-white rounded-[3px] shadow-2xl w-full max-w-md overflow-hidden border border-[var(--border)] animate-in zoom-in-95 duration-200">
             <div className="px-8 py-6 bg-[var(--bg-surface-2)] border-b border-[var(--border)] flex items-center justify-between">
               <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
-                  <Target className="h-4 w-4 text-indigo-500" /> Synchronize Milestone
+                  <Target className="h-4 w-4 text-indigo-500" /> Add Milestone
               </h2>
               <button onClick={() => { setMilestoneModal(null); setError(""); }}><X className="h-4 w-4 text-slate-400" /></button>
             </div>
             <form onSubmit={handleAddMilestone} className="p-10 space-y-6">
               <div className="p-4 bg-slate-50 border border-[var(--border)] rounded-[3px]">
-                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Mission</p>
+                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Project</p>
                    <p className="text-[11px] font-bold text-[var(--text-primary)] uppercase">{milestoneModal.project_name}</p>
               </div>
 
               <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <label className={labelClass}>Milestone Objective *</label>
-                    <input required value={milestoneForm.title} placeholder="CORE_PHASE_IDENTIFIER" onChange={e => setMilestoneForm(f => ({ ...f, title: e.target.value }))}
+                    <label className={labelClass}>Milestone Title *</label>
+                    <input required value={milestoneForm.title} placeholder="Milestone Title" onChange={e => setMilestoneForm(f => ({ ...f, title: e.target.value }))}
                       className={cn(inputClass, "uppercase")} />
                   </div>
                   <div className="space-y-1.5">
-                    <label className={labelClass}>Mission Logic</label>
-                    <textarea rows={2} value={milestoneForm.description} placeholder="Define successful completion parameters..." onChange={e => setMilestoneForm(f => ({ ...f, description: e.target.value }))}
+                    <label className={labelClass}>Description</label>
+                    <textarea rows={2} value={milestoneForm.description} placeholder="Describe this milestone..." onChange={e => setMilestoneForm(f => ({ ...f, description: e.target.value }))}
                       className={cn(inputClass, "resize-none font-medium normal-case")} />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className={labelClass}>Termination Date</label>
+                      <label className={labelClass}>Due Date</label>
                       <input type="date" value={milestoneForm.due_date} onChange={e => setMilestoneForm(f => ({ ...f, due_date: e.target.value }))}
                         className={inputClass} />
                     </div>
                     <div className="space-y-1.5">
-                      <label className={labelClass}>Active State</label>
+                      <label className={labelClass}>Status</label>
                       <div className="relative">
                           <select value={milestoneForm.status} onChange={e => setMilestoneForm(f => ({ ...f, status: e.target.value }))}
                             className={cn(inputClass, "appearance-none bg-slate-50")}>
-                            <option value="NOT_STARTED">STDBY</option>
-                            <option value="IN_PROGRESS">ACTIVE</option>
-                            <option value="COMPLETED">CMB</option>
+                            <option value="NOT_STARTED">Not Started</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="COMPLETED">Completed</option>
                           </select>
                           <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 rotate-90" />
                       </div>
@@ -439,7 +439,7 @@ export default function ClientManagementPage() {
               <div className="flex gap-4 pt-6 border-t border-slate-50">
                 <button type="submit" disabled={saving}
                   className="jira-button bg-indigo-600 text-white hover:bg-indigo-700 h-12 flex-1 font-bold uppercase text-[10px] shadow-lg shadow-indigo-100">
-                  Lock Milestone
+                  Save Milestone
                 </button>
                 <button type="button" onClick={() => { setMilestoneModal(null); setError(""); }}
                   className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Cancel</button>

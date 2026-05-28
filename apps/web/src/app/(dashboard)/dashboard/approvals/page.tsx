@@ -87,8 +87,8 @@ export default function ApprovalsPage() {
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Governance & Approvals</h1>
-            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest">Protocol-based authorization and workflow verification</p>
+            <h1 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Approvals</h1>
+            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest">Submit and review approval requests</p>
           </div>
         </div>
         <button onClick={() => setShowCreate(true)}
@@ -102,7 +102,7 @@ export default function ApprovalsPage() {
         <div className="flex items-center">
             {[
                 { id: 'mine', label: 'My Submissions', count: myRequests.length, icon: Send },
-                { id: 'pending', label: 'Awaiting Authorization', count: pendingForMe.length, icon: Inbox }
+                { id: 'pending', label: 'Needs My Approval', count: pendingForMe.length, icon: Inbox }
             ].map(t => (
                 <button 
                   key={t.id} 
@@ -132,7 +132,7 @@ export default function ApprovalsPage() {
         {loading ? (
              <div className="flex flex-col items-center justify-center py-32 gap-4 opacity-40">
                   <div className="h-8 w-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
-                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Synchronizing Workflow State...</span>
+                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Loading...</span>
              </div>
         ) : (
             tab === 'mine' ? (
@@ -140,8 +140,8 @@ export default function ApprovalsPage() {
                   {myRequests.length === 0 ? (
                     <div className="card p-32 text-center flex flex-col items-center opacity-30">
                         <History className="h-16 w-16 text-[var(--text-muted)] mb-6 stroke-[1px]" />
-                        <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Submission Log Empty</h3>
-                        <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">No active authorization requests recorded in your sector.</p>
+                        <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">No Requests Yet</h3>
+                        <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">You haven't submitted any approval requests yet.</p>
                     </div>
                   ) : (
                     myRequests.map(r => (
@@ -203,8 +203,8 @@ export default function ApprovalsPage() {
                   {pendingForMe.length === 0 ? (
                     <div className="card p-32 text-center flex flex-col items-center opacity-30">
                         <ClipboardCheck className="h-16 w-16 text-[var(--text-muted)] mb-6 stroke-[1px]" />
-                        <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Queue Neutralized</h3>
-                        <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">Zero pending actions assigned to your identification.</p>
+                        <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">All Caught Up</h3>
+                        <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">No approvals are waiting for your review.</p>
                     </div>
                   ) : (
                     pendingForMe.map(step => (
@@ -212,7 +212,7 @@ export default function ApprovalsPage() {
                         <div className="flex flex-col md:flex-row">
                              <div className="flex-1 p-6 space-y-4">
                                 <div>
-                                    <h4 className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] mb-1">Authorization Required</h4>
+                                    <h4 className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] mb-1">Approval Required</h4>
                                     <h3 className="text-lg font-bold text-[var(--text-primary)]">{step.request?.title}</h3>
                                 </div>
                                 <div className="flex items-center gap-6 overflow-x-auto no-scrollbar">
@@ -237,7 +237,7 @@ export default function ApprovalsPage() {
                              <div className="md:w-72 bg-[var(--bg-surface-2)] border-t md:border-t-0 md:border-l border-[var(--border)] p-6 space-y-3 flex flex-col justify-center">
                                 <button onClick={() => setActModal({ ...step, _action: 'APPROVED' })}
                                   className="jira-button bg-emerald-600 text-white h-11 gap-3 font-bold uppercase text-[10px] hover:bg-emerald-700 shadow-md shadow-emerald-50">
-                                  <CheckCircle2 className="h-4 w-4" /> Certify Authority
+                                  <CheckCircle2 className="h-4 w-4" /> Approve
                                 </button>
                                 <div className="grid grid-cols-2 gap-2">
                                      <button onClick={() => setActModal({ ...step, _action: 'RETURNED' })}
@@ -266,7 +266,7 @@ export default function ApprovalsPage() {
             <div className="flex items-center justify-between px-6 py-4 bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
                   <Plus className="h-4 w-4 text-[var(--color-primary)]" />
-                  <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">New Authorization Protocol</h2>
+                  <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">New Approval Request</h2>
               </div>
               <button 
                   onClick={() => setShowCreate(false)}
@@ -277,29 +277,29 @@ export default function ApprovalsPage() {
             </div>
             <form onSubmit={handleCreate} className="p-8 space-y-6">
               <div className="space-y-1.5">
-                <label className={labelClass}>Protocol Designation (Title) *</label>
-                <input required value={form.title} placeholder="REQUEST_ALPHA_IDENTIFIER" onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                <label className={labelClass}>Title *</label>
+                <input required value={form.title} placeholder="Brief description of your request" onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                   className={inputClass} />
               </div>
               <div className="space-y-1.5">
-                <label className={labelClass}>Workflow Logic (Type)</label>
+                <label className={labelClass}>Request Type</label>
                 <div className="relative">
                     <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-primary)]" />
                     <select value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
                       className={cn(inputClass, "pl-10 appearance-none bg-slate-50")}>
-                      {TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')} AUTHORITY</option>)}
+                      {TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
                     </select>
                     <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 rotate-90" />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className={labelClass}>Technical Requirements / description</label>
-                <textarea rows={4} value={form.description} placeholder="Provide comprehensive justification for this authorization protocol..." onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                <label className={labelClass}>Description</label>
+                <textarea rows={4} value={form.description} placeholder="Explain why you need this approval..." onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                   className={cn(inputClass, "resize-none font-medium normal-case")} />
               </div>
               <div className="flex gap-4 pt-4 border-t border-[var(--border)]">
-                <button type="submit" className="jira-button jira-button-primary h-12 flex-1 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">Broadcast Protocol</button>
-                <button type="button" onClick={() => setShowCreate(false)} className="jira-button border border-[var(--border)] h-12 flex-1 font-bold uppercase text-[10px] bg-white text-[var(--text-muted)]">Abort</button>
+                <button type="submit" className="jira-button jira-button-primary h-12 flex-1 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">Submit Request</button>
+                <button type="button" onClick={() => setShowCreate(false)} className="jira-button border border-[var(--border)] h-12 flex-1 font-bold uppercase text-[10px] bg-white text-[var(--text-muted)]">Cancel</button>
               </div>
             </form>
           </div>
@@ -312,12 +312,12 @@ export default function ApprovalsPage() {
           <div className="bg-white rounded-[3px] shadow-2xl w-full max-w-md overflow-hidden border border-[var(--border)] animate-in zoom-in-95 duration-200 flex flex-col">
             <div className="px-8 py-6 space-y-6">
                 <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">
-                  {actModal._action === 'APPROVED' ? 'Finalize Certification' : actModal._action === 'REJECTED' ? 'Confirm Rejection' : 'Internal Return'}
+                  {actModal._action === 'APPROVED' ? 'Approve Request' : actModal._action === 'REJECTED' ? 'Reject Request' : 'Return for Changes'}
                 </h2>
                 <div className="space-y-2">
-                    <label className={labelClass}>Decision Analytics (Comments)</label>
+                    <label className={labelClass}>Comments (optional)</label>
                     <textarea rows={4} value={actComment} onChange={e => setActComment(e.target.value)}
-                      placeholder="Append analysis and technical justification to the mission log..."
+                      placeholder="Add a note explaining your decision..."
                       className={cn(inputClass, "resize-none font-medium normal-case")} />
                 </div>
                 <div className="flex gap-4">
@@ -326,7 +326,7 @@ export default function ApprovalsPage() {
                         "h-12 flex-1 text-[10px] font-bold uppercase tracking-widest text-white shadow-lg transition-all rounded-[3px]",
                         actModal._action === 'APPROVED' ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-50" : actModal._action === 'REJECTED' ? "bg-red-600 hover:bg-red-700 shadow-red-50" : "bg-[var(--color-primary)] hover:bg-blue-700 shadow-blue-50"
                     )}>
-                    Confirm Execution
+                    Confirm
                   </button>
                   <button onClick={() => setActModal(null)} className="h-12 flex-1 border border-[var(--border)] text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest rounded-[3px] hover:bg-slate-50 transition-all">Cancel</button>
                 </div>

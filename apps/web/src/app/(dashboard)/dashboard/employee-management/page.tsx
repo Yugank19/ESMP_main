@@ -88,35 +88,35 @@ export default function EmployeeManagementPage() {
 
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
-    if (!addEmail.endsWith('@gmail.com')) { showToast('GMAIL PROTOCOL ENFORCED'); return; }
+    if (!addEmail.endsWith('@gmail.com')) { showToast('Only Gmail addresses are allowed'); return; }
     setSubmitting(true);
     try {
       const res = await sendEmployeeOtp(addEmail);
       if (res.statusCode && res.statusCode >= 400) {
-        showToast(res.message || 'OTP_TRANSMISSION_FAILED');
+        showToast(res.message || 'Failed to send verification code');
       } else {
         setAddStep('otp');
         startCooldown();
-        showToast('OTP_BROADCAST_SUCCESSFUL');
+        showToast('Verification code sent!');
       }
-    } catch { showToast('COMMUNICATION_LINK_ERROR'); }
+    } catch { showToast('Failed to send email. Please try again.'); }
     finally { setSubmitting(false); }
   }
 
   async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault();
-    if (addOtp.length !== 6) { showToast('INVALID_AUTH_CODE'); return; }
+    if (addOtp.length !== 6) { showToast('Please enter the 6-digit code'); return; }
     setSubmitting(true);
     try {
       const res = await verifyEmployeeOtp(addEmail, addOtp);
       if (res.statusCode && res.statusCode >= 400) {
-        showToast(res.message || 'X_VERIFICATION_FAILED');
+        showToast(res.message || 'Verification failed. Please try again.');
       } else {
         setAddForm(f => ({ ...f, email: addEmail }));
         setAddStep('details');
-        showToast('IDENTITY_CONFIRMED');
+        showToast('Email verified!');
       }
-    } catch { showToast('CORE_AUTHENTICATION_ERROR'); }
+    } catch { showToast('Verification error. Please try again.'); }
     finally { setSubmitting(false); }
   }
 
@@ -127,14 +127,14 @@ export default function EmployeeManagementPage() {
     try {
       const res = await createEmployee({ ...addForm, email: addEmail });
       if (res.statusCode && res.statusCode >= 400) {
-        showToast(res.message || 'ACCOUNT_INITIALIZATION_ERROR');
+        showToast(res.message || 'Failed to create employee account');
       } else {
-        showToast('PERSONNEL_REGISTERED_SUCCESSFULLY');
+        showToast('Employee added successfully!');
         setShowAdd(false);
         setAddForm({ name: '', email: '', phone: '', department: '', designation: '' });
         load();
       }
-    } catch { showToast('PRIMARY_STORAGE_ERROR'); }
+    } catch { showToast('Something went wrong. Please try again.'); }
     finally { setSubmitting(false); }
   }
 
@@ -144,20 +144,20 @@ export default function EmployeeManagementPage() {
     setSubmitting(true);
     try {
       await updateEmployee(editTarget.id, editForm);
-      showToast('RECORD_SYNCHRONIZATION_COMPLETE');
+      showToast('Employee updated successfully!');
       setEditTarget(null);
       load();
-    } catch { showToast('MODIFICATION_REJECTED'); }
+    } catch { showToast('Failed to update employee'); }
     finally { setSubmitting(false); }
   }
 
   async function handleDeactivate(emp: any) {
-    if (!confirm(`Purge personnel authorization for ${emp.name}?`)) return;
+    if (!confirm(`Deactivate ${emp.name}? They will lose access to the system.`)) return;
     try {
       await deactivateEmployee(emp.id);
-      showToast('ACCESS_REVOKED');
+      showToast('Employee deactivated');
       load();
-    } catch { showToast('DEACTIVATION_PROTOCOL_FAILED'); }
+    } catch { showToast('Failed to deactivate employee'); }
   }
 
   const filtered = employees.filter(e => {
@@ -193,23 +193,23 @@ export default function EmployeeManagementPage() {
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Personnel Intelligence Registry</h1>
-            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest">Enterprise resource management / sector authorization control</p>
+            <h1 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-tight">Employee Management</h1>
+            <p className="text-[10px] font-bold text-[var(--text-muted)] mt-1 uppercase tracking-widest">Manage employee accounts, departments, and access</p>
           </div>
         </div>
         <button onClick={() => { setAddStep('email'); setShowAdd(true); }}
           className="jira-button jira-button-primary h-12 px-8 gap-3 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">
-          <UserPlus className="h-4 w-4" /> Recruit Personnel
+          <UserPlus className="h-4 w-4" /> Add Employee
         </button>
       </div>
 
       {/* High-Fidelity Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Global Workforce', value: stats.total, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', desc: 'Active identification records' },
-          { label: 'Authorized Units', value: stats.active, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', desc: 'Secure operational status' },
-          { label: 'Neutralized Links', value: stats.inactive, icon: UserX, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', desc: 'Access hierarchy purged' },
-          { label: 'Awaiting Verification', value: stats.pending, icon: Lock, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', desc: 'Pending first synchronization' },
+          { label: 'Total Employees', value: stats.total, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', desc: 'Registered employee accounts' },
+          { label: 'Active', value: stats.active, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', desc: 'Currently active employees' },
+          { label: 'Inactive', value: stats.inactive, icon: UserX, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100', desc: 'Deactivated accounts' },
+          { label: 'Pending Setup', value: stats.pending, icon: Lock, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', desc: 'Awaiting first login' },
         ].map(c => (
           <div key={c.label} className="card p-6 border-[var(--border)] hover:border-[var(--color-primary)] transition-all group">
             <div className="flex items-start justify-between mb-4">
@@ -234,15 +234,15 @@ export default function EmployeeManagementPage() {
           <input 
             value={search} 
             onChange={e => setSearch(e.target.value)} 
-            placeholder="SEARCH PERSONNEL BY NAME, EMAIL, OR SIGNATURE..."
+            placeholder="Search by name or email..."
             className="w-full pl-12 pr-6 py-4 bg-white border border-[var(--border)] rounded-[3px] text-[11px] font-bold uppercase tracking-[0.2em] placeholder:text-slate-200 outline-none focus:border-[var(--color-primary)] shadow-sm transition-all" />
         </div>
         <div className="relative group">
             <Building className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-primary)]" />
             <select value={filterDept} onChange={e => setFilterDept(e.target.value)}
               className="bg-white border border-[var(--border)] rounded-[3px] pl-12 pr-10 py-4 text-[10px] font-bold uppercase tracking-widest text-[var(--text-primary)] focus:border-[var(--color-primary)] outline-none appearance-none cursor-pointer shadow-sm transition-all hover:bg-slate-50">
-              <option value="">ALL_SECTORS</option>
-              {departments.map(d => <option key={d} value={d}>{d}_UNIT</option>)}
+              <option value="">All Departments</option>
+              {departments.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none rotate-90" />
         </div>
@@ -250,9 +250,9 @@ export default function EmployeeManagementPage() {
             <Shield className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-primary)]" />
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
               className="bg-white border border-[var(--border)] rounded-[3px] pl-12 pr-10 py-4 text-[10px] font-bold uppercase tracking-widest text-[var(--text-primary)] focus:border-[var(--color-primary)] outline-none appearance-none cursor-pointer shadow-sm transition-all hover:bg-slate-50">
-              <option value="">ALL_STATUSES</option>
-              <option value="ACTIVE">ACTIVE_PROTOCOL</option>
-              <option value="INACTIVE">NEUTRALIZED_PROTOCOL</option>
+              <option value="">All Statuses</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
             </select>
             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none rotate-90" />
         </div>
@@ -266,20 +266,20 @@ export default function EmployeeManagementPage() {
         {loading ? (
              <div className="flex flex-col items-center justify-center py-32 gap-4 opacity-40">
                   <div className="h-8 w-8 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
-                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Executing Data Stream Query...</span>
+                  <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Loading...</span>
              </div>
         ) : filtered.length === 0 ? (
           <div className="p-32 text-center flex flex-col items-center opacity-30">
             <Users className="h-20 w-20 text-[var(--text-muted)] mb-6 stroke-[1px]" />
-            <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Registry Vacant</h3>
-            <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">No personnel records detected within synchronized parameters.</p>
+            <h3 className="text-xl font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">No Employees Found</h3>
+            <p className="text-xs font-bold text-[var(--text-muted)] mt-2 uppercase tracking-widest">No employees match your search criteria.</p>
           </div>
         ) : (
           <div className="overflow-x-auto no-scrollbar">
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
-                  {['Personnel Entity', 'Department Sector', 'Tactical Designation', 'Communication Link', 'Auth Status', 'Joined', 'Actions'].map(h => (
+                  {['Employee', 'Department', 'Job Title', 'Phone', 'Status', 'Joined', 'Actions'].map(h => (
                     <th key={h} className="text-left px-8 py-5 text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)]">{h}</th>
                   ))}
                 </tr>
@@ -326,7 +326,7 @@ export default function EmployeeManagementPage() {
                                {st.label}
                           </span>
                           {emp.must_change_password && (
-                            <div title="PENDING_INITIAL_AUTH">
+                            <div title="Awaiting first login">
                                <Lock className="h-3.5 w-3.5 text-orange-400 animate-pulse" />
                             </div>
                           )}
@@ -365,7 +365,7 @@ export default function EmployeeManagementPage() {
             <div className="px-8 py-6 bg-[var(--bg-surface-2)] border-b border-[var(--border)] flex items-center justify-between">
               <div>
                   <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em] flex items-center gap-3">
-                      <UserPlus className="h-4 w-4 text-[var(--color-primary)]" /> Personnel Intake Terminal
+                      <UserPlus className="h-4 w-4 text-[var(--color-primary)]" /> Add New Employee
                   </h2>
               </div>
               <button onClick={() => setShowAdd(false)} className="p-1.5 rounded-[3px] hover:bg-white border border-transparent transition-all">
@@ -376,9 +376,9 @@ export default function EmployeeManagementPage() {
             {/* Tactical Step Indicator */}
             <div className="px-10 py-6 bg-slate-50/50 flex items-center gap-4">
               {[
-                  { id: 'email', icon: Mail, label: 'GMAIL_LINK' },
-                  { id: 'otp', icon: ShieldCheck, label: 'AUTH_VERIFY' },
-                  { id: 'details', icon: Users, label: 'RECORD_FINAL' }
+                  { id: 'email', icon: Mail, label: 'Email' },
+                  { id: 'otp', icon: ShieldCheck, label: 'Verify' },
+                  { id: 'details', icon: Users, label: 'Details' }
               ].map((s, i) => {
                 const steps = ['email', 'otp', 'details'];
                 const current = steps.indexOf(addStep);
@@ -402,15 +402,15 @@ export default function EmployeeManagementPage() {
                 {addStep === 'email' && (
                   <form onSubmit={handleSendOtp} className="space-y-6">
                     <div>
-                         <h3 className="text-lg font-bold text-[var(--text-primary)] uppercase tracking-tight">Identity Initialization</h3>
-                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">GMAIL_PROTOCOL_LOCK: Active</p>
+                         <h3 className="text-lg font-bold text-[var(--text-primary)] uppercase tracking-tight">Enter Email Address</h3>
+                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">Only Gmail addresses are accepted</p>
                     </div>
                     <div className="space-y-1.5">
-                      <label className={labelClass}>Operational Gmail *</label>
+                      <label className={labelClass}>Gmail Address *</label>
                       <div className="relative">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
                         <input required type="email" value={addEmail} onChange={e => setAddEmail(e.target.value)}
-                          placeholder="IDENTIFIER@GMAIL.COM"
+                          placeholder="employee@gmail.com"
                           className={cn(inputClass, "pl-12 lowercase")} />
                       </div>
                     </div>
@@ -418,9 +418,9 @@ export default function EmployeeManagementPage() {
                       <button type="submit" disabled={submitting}
                         className="jira-button jira-button-primary h-12 flex-1 gap-3 font-bold uppercase text-[10px] disabled:opacity-50">
                         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-                        Transmit Auth Token
+                        Send Verification Code
                       </button>
-                      <button type="button" onClick={() => setShowAdd(false)} className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Abort</button>
+                      <button type="button" onClick={() => setShowAdd(false)} className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Cancel</button>
                     </div>
                   </form>
                 )}
@@ -431,29 +431,29 @@ export default function EmployeeManagementPage() {
                          <div className="w-16 h-16 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-4">
                               <ShieldCheck className="h-8 w-8 text-[var(--color-primary)]" />
                          </div>
-                         <h3 className="text-lg font-bold text-[var(--text-primary)] uppercase tracking-tight">Verification Required</h3>
-                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">TOKEN TRANSMITTED TO: {addEmail}</p>
+                         <h3 className="text-lg font-bold text-[var(--text-primary)] uppercase tracking-tight">Check Your Email</h3>
+                         <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mt-1">We sent a 6-digit code to {addEmail}</p>
                     </div>
                     <div className="space-y-1.5 text-center">
-                      <label className={labelClass}>6-DIGIT AUTHENTICATION TOKEN</label>
+                      <label className={labelClass}>Verification Code</label>
                       <input type="text" inputMode="numeric" maxLength={6} value={addOtp}
                         onChange={e => setAddOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="XXXXXX"
+                        placeholder="000000"
                         className="w-full bg-slate-50 border border-[var(--border)] rounded-[3px] py-4 text-3xl font-black text-center tracking-[0.6em] outline-none focus:border-[var(--color-primary)] text-[var(--color-primary)]" />
                     </div>
                     <div className="flex gap-4 pt-4">
                       <button type="submit" disabled={submitting || addOtp.length !== 6}
                         className="jira-button jira-button-primary h-12 flex-1 gap-3 font-bold uppercase text-[10px] disabled:opacity-50">
                         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
-                        Verify Identity
+                        Verify Code
                       </button>
                       <button type="button" onClick={async () => {
                         if (otpCooldown > 0 || submitting) return;
                         setSubmitting(true);
-                        try { await sendEmployeeOtp(addEmail); startCooldown(); showToast('OTP_REGENERATED'); } catch { } finally { setSubmitting(false); }
+                        try { await sendEmployeeOtp(addEmail); startCooldown(); showToast('New code sent!'); } catch { } finally { setSubmitting(false); }
                       }} disabled={otpCooldown > 0 || submitting}
                         className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px] disabled:opacity-30">
-                        {otpCooldown > 0 ? `REGEN: ${otpCooldown}S` : 'Request Resend'}
+                        {otpCooldown > 0 ? `Resend in ${otpCooldown}s` : 'Resend Code'}
                       </button>
                     </div>
                   </form>
@@ -464,45 +464,45 @@ export default function EmployeeManagementPage() {
                     <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-[3px] flex items-center gap-4">
                       <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                       <div>
-                          <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest">Identity Verified</p>
+                          <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest">Email Verified</p>
                           <p className="text-[11px] font-bold text-emerald-600 tracking-tight">{addEmail}</p>
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-1.5">
-                        <label className={labelClass}>Full Personnel Name *</label>
+                        <label className={labelClass}>Full Name *</label>
                         <input required value={addForm.name} onChange={e => setAddForm(f => ({ ...f, name: e.target.value }))}
-                          placeholder="FULL_ENTITY_NAME" className={cn(inputClass, "uppercase")} />
+                          placeholder="Full name" className={cn(inputClass, "uppercase")} />
                       </div>
                       <div className="space-y-1.5">
-                        <label className={labelClass}>Tactical Phine Link</label>
+                        <label className={labelClass}>Phone Number</label>
                         <input value={addForm.phone} onChange={e => setAddForm(f => ({ ...f, phone: e.target.value }))}
-                          placeholder="+X XXX-XXXX" className={inputClass} />
+                          placeholder="+1 555 0000" className={inputClass} />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-6">
                       <div className="space-y-1.5">
-                        <label className={labelClass}>Target Sector *</label>
+                        <label className={labelClass}>Department *</label>
                         <div className="relative">
                           <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
                           <select required value={addForm.department} onChange={e => setAddForm(f => ({ ...f, department: e.target.value }))}
                             className={cn(inputClass, "pl-10 appearance-none bg-slate-50")}>
-                            <option value="">SELECT_SECTOR</option>
-                            {departments.map(d => <option key={d} value={d}>{d}_UNIT</option>)}
+                            <option value="">Select department</option>
+                            {departments.map(d => <option key={d} value={d}>{d}</option>)}
                           </select>
                           <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 rotate-90" />
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label className={labelClass}>Core Designation *</label>
+                        <label className={labelClass}>Job Title *</label>
                         <div className="relative">
                           <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 pointer-events-none" />
                           <select required value={addForm.designation} onChange={e => setAddForm(f => ({ ...f, designation: e.target.value }))}
                             className={cn(inputClass, "pl-10 appearance-none bg-slate-50")}>
-                            <option value="">SELECT_ROLE</option>
-                            {DESIGNATIONS.map(d => <option key={d} value={d}>{d.toUpperCase()}</option>)}
+                            <option value="">Select job title</option>
+                            {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
                           </select>
                           <ChevronRight className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 rotate-90" />
                         </div>
@@ -510,8 +510,8 @@ export default function EmployeeManagementPage() {
                     </div>
 
                     <div className="p-4 bg-blue-50 border border-blue-100 rounded-[3px] border-l-4 border-l-blue-500">
-                      <p className="text-[10px] font-bold text-blue-700 leading-relaxed uppercase tracking-widest">
-                        System will generate a primary decryption key (password) and transmit to entity mailbox. Role: EMPLOYEE_LEVEL_3.
+                      <p className="text-sm font-medium text-blue-700 leading-relaxed">
+                        Login credentials will be generated and sent to the employee's email address.
                       </p>
                     </div>
 
@@ -519,9 +519,9 @@ export default function EmployeeManagementPage() {
                       <button type="submit" disabled={submitting}
                         className="jira-button jira-button-primary h-12 flex-1 gap-3 font-bold uppercase text-[10px] disabled:opacity-50">
                         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
-                        Finalize Recruitment
+                        Add Employee
                       </button>
-                      <button type="button" onClick={() => setShowAdd(false)} className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Abort</button>
+                      <button type="button" onClick={() => setShowAdd(false)} className="jira-button border border-[var(--border)] h-12 flex-1 bg-white text-[var(--text-muted)] font-bold uppercase text-[10px]">Cancel</button>
                     </div>
                   </form>
                 )}
@@ -545,25 +545,25 @@ export default function EmployeeManagementPage() {
 
             <form onSubmit={handleEdit} className="p-10 space-y-6">
               <div className="space-y-1.5">
-                <label className={labelClass}>Full Personnel Name</label>
+                <label className={labelClass}>Full Name</label>
                 <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
                   className={cn(inputClass, "uppercase")} />
               </div>
               <div className="space-y-1.5">
-                <label className={labelClass}>Communication Link (Phone)</label>
+                <label className={labelClass}>Phone Number</label>
                 <input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
                   className={inputClass} />
               </div>
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Sector Designation</label>
+                  <label className={labelClass}>Department</label>
                   <select value={editForm.department} onChange={e => setEditForm(f => ({ ...f, department: e.target.value }))}
                     className={cn(inputClass, "appearance-none bg-slate-50")}>
                     {departments.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className={labelClass}>Core Protocol</label>
+                  <label className={labelClass}>Job Title</label>
                   <select value={editForm.designation} onChange={e => setEditForm(f => ({ ...f, designation: e.target.value }))}
                     className={cn(inputClass, "appearance-none bg-slate-50")}>
                     {DESIGNATIONS.map(d => <option key={d} value={d}>{d}</option>)}
@@ -571,17 +571,17 @@ export default function EmployeeManagementPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className={labelClass}>Authorization Status</label>
+                <label className={labelClass}>Status</label>
                 <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
                   className={cn(inputClass, "appearance-none bg-slate-50")}>
-                  <option value="ACTIVE">ACTIVE_PROTOCOL</option>
-                  <option value="INACTIVE">NEUTRALIZED_PROTOCOL</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
                 </select>
               </div>
               <div className="flex gap-4 pt-4 border-t border-slate-50">
                 <button type="submit" disabled={submitting}
                   className="jira-button jira-button-primary h-12 flex-1 font-bold uppercase text-[10px] shadow-lg shadow-blue-100">
-                  {submitting ? 'SYNCHRONIZING...' : 'Commit Changes'}
+                  {submitting ? 'Saving...' : 'Save Changes'}
                 </button>
                 <button type="button" onClick={() => setEditTarget(null)}
                   className="jira-button border border-[var(--border)] h-12 flex-1 font-bold uppercase text-[10px] bg-white text-[var(--text-muted)]">

@@ -64,15 +64,15 @@ export default function MyWorkspacePage() {
   if (!user || loading) return (
     <div className="flex flex-col items-center justify-center h-96 gap-4 opacity-40">
       <div className="h-10 w-10 rounded-full border-2 border-[var(--color-primary)] border-t-transparent animate-spin" />
-      <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Synchronizing Personal Workspace HUD...</span>
+      <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em]">Loading your workspace...</span>
     </div>
   );
 
   const summaryCards = [
-    { label: 'Active Missions', value: workload?.activeTasks?.length ?? 0, icon: CheckSquare, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', href: '/dashboard/tasks' },
+    { label: 'Active Tasks', value: workload?.activeTasks?.length ?? 0, icon: CheckSquare, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', href: '/dashboard/tasks' },
     { label: 'Open Requests', value: ticketStats?.total ?? 0, icon: Ticket, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', href: '/dashboard/tickets' },
-    { label: 'Pending Auth', value: workload?.pendingApprovals ?? 0, icon: GitBranch, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', href: '/dashboard/approvals' },
-    { label: 'Temporal Sync', value: `${(workload?.hoursThisWeek || 0).toFixed(1)}h`, icon: Clock, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', href: '/dashboard/time-tracking' },
+    { label: 'Pending Approvals', value: workload?.pendingApprovals ?? 0, icon: GitBranch, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', href: '/dashboard/approvals' },
+    { label: 'Hours This Week', value: `${(workload?.hoursThisWeek || 0).toFixed(1)}h`, icon: Clock, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', href: '/dashboard/time-tracking' },
   ];
 
   return (
@@ -89,7 +89,7 @@ export default function MyWorkspacePage() {
           <div>
             <div className="flex items-center gap-3 mb-4">
                 <span className="px-3 py-1 bg-white/10 text-white/60 text-[9px] font-black rounded-[2px] uppercase tracking-[0.2em] border border-white/10">
-                    Temporal Point: {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-emerald-500/50 shadow-lg" />
             </div>
@@ -98,8 +98,8 @@ export default function MyWorkspacePage() {
             </h1>
             <p className="text-[11px] font-bold text-slate-400 mt-4 uppercase tracking-[0.1em] max-w-xl leading-relaxed">
               {workload?.overdueTasks > 0
-                ? `SECURITY_ALERT: YOU HAVE ${workload.overdueTasks} OVERDUE PROTOCOLS REQUIRING IMMEDIATE TRIAGE.`
-                : 'WORKSPACE_STATUS: OPTIMAL. ALL SYSTEMS NOMINAL. MISSION CONTINUITY CONFIRMED.'}
+                ? `You have ${workload.overdueTasks} overdue task${workload.overdueTasks > 1 ? `s` : ``} that need attention.`
+                : 'Everything looks good. You\'re all caught up!'}
             </p>
           </div>
           
@@ -110,7 +110,7 @@ export default function MyWorkspacePage() {
             </Link>
             <Link href="/dashboard/time-tracking"
               className="px-8 h-12 rounded-[3px] text-[10px] font-black bg-[var(--color-primary)] hover:bg-blue-700 text-white transition-all flex items-center gap-3 uppercase tracking-widest shadow-xl shadow-blue-900/40">
-              <Clock className="h-4 w-4" /> Log Temporal Units
+              <Clock className="h-4 w-4" /> Log Time
             </Link>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function MyWorkspacePage() {
             <div className="relative z-10">
               <p className="text-3xl font-black text-[var(--text-primary)] tracking-tight">{c.value}</p>
               <p className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-widest mt-1">{c.label}</p>
-              <p className="text-[8px] font-bold text-slate-300 uppercase tracking-tighter mt-1">REAL_TIME_SYNC_ACTIVE</p>
+              <p className="text-[8px] font-bold text-slate-300 uppercase tracking-tighter mt-1"></p>
             </div>
             <div className="absolute -bottom-2 -right-2 text-[48px] font-black text-slate-50 pointer-events-none group-hover:text-blue-50/50 transition-colors uppercase select-none">
                 {c.label.substring(0, 2)}
@@ -145,15 +145,15 @@ export default function MyWorkspacePage() {
           <div className="flex items-center justify-between px-8 py-5 bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
             <div className="flex items-center gap-3">
                  <Terminal className="h-4 w-4 text-[var(--color-primary)]" />
-                 <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Active Mission Protocols</h2>
+                 <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">My Active Tasks</h2>
             </div>
-            <Link href="/dashboard/tasks" className="text-[9px] font-black text-[var(--color-primary)] uppercase tracking-widest hover:translate-x-2 transition-transform flex items-center gap-2">LOG_VIEW_ALL <ArrowRight className="h-3 w-3" /></Link>
+            <Link href="/dashboard/tasks" className="text-[9px] font-black text-[var(--color-primary)] uppercase tracking-widest hover:translate-x-2 transition-transform flex items-center gap-2">View all <ArrowRight className="h-3 w-3" /></Link>
           </div>
           <div className="divide-y divide-slate-100">
             {!workload?.activeTasks?.length ? (
               <div className="p-20 text-center flex flex-col items-center opacity-30">
                 <CheckSquare className="h-16 w-16 text-[var(--text-muted)] mb-6 stroke-[1px]" />
-                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Zero Active Task Signatures Detected</p>
+                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">No active tasks</p>
               </div>
             ) : workload.activeTasks.map((task: any) => (
               <div key={task.id} className="px-8 py-5 flex items-center justify-between gap-6 group hover:bg-slate-50 transition-colors">
@@ -197,15 +197,15 @@ export default function MyWorkspacePage() {
           <div className="flex items-center justify-between px-8 py-5 bg-[var(--bg-surface-2)] border-b border-[var(--border)]">
             <div className="flex items-center gap-3">
                  <Megaphone className="h-4 w-4 text-[var(--color-primary)]" />
-                 <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Intelligence Dispatch</h2>
+                 <h2 className="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-[0.2em]">Company Announcements</h2>
             </div>
-            <Link href="/dashboard/company-news" className="text-[9px] font-black text-[var(--color-primary)] uppercase tracking-widest hover:translate-x-2 transition-transform flex items-center gap-2">X_FEED <ArrowRight className="h-3 w-3" /></Link>
+            <Link href="/dashboard/company-news" className="text-[9px] font-black text-[var(--color-primary)] uppercase tracking-widest hover:translate-x-2 transition-transform flex items-center gap-2">View all <ArrowRight className="h-3 w-3" /></Link>
           </div>
           <div className="divide-y divide-slate-100 bg-slate-50/10">
             {announcements.length === 0 ? (
               <div className="p-20 text-center flex flex-col items-center opacity-30">
                 <Globe className="h-16 w-16 text-[var(--text-muted)] mb-6 stroke-[1px]" />
-                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">No Global Signals Detected</p>
+                <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">No announcements yet</p>
               </div>
             ) : announcements.map(a => (
               <div key={a.id} className={cn(
@@ -235,16 +235,16 @@ export default function MyWorkspacePage() {
       <div className="card p-8 border-[var(--border)] bg-slate-50/50 shadow-inner">
         <div className="flex items-center gap-3 mb-8">
              <Layout className="h-5 w-5 text-slate-400" />
-             <h2 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-[0.3em]">Operational Access Hub</h2>
+             <h2 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-[0.3em]">Quick Actions</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
             { label: 'New Ticket', href: '/dashboard/tickets', icon: Ticket, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
             { label: 'Sync Time', href: '/dashboard/time-tracking', icon: Clock, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
-            { label: 'Auth Panel', href: '/dashboard/approvals', icon: GitBranch, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
-            { label: 'Bug Triage', href: '/dashboard/bugs', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100' },
-            { label: 'Intel Repo', href: '/dashboard/knowledge-base', icon: CheckSquare, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
-            { label: 'Status Feed', href: '/dashboard/company-news', icon: Megaphone, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
+            { label: 'Approvals', href: '/dashboard/approvals', icon: GitBranch, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
+            { label: 'Bug Tracker', href: '/dashboard/bugs', icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100' },
+            { label: 'Knowledge Base', href: '/dashboard/knowledge-base', icon: CheckSquare, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+            { label: 'Company News', href: '/dashboard/company-news', icon: Megaphone, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
           ].map(a => (
             <Link key={a.href} href={a.href}
               className="flex flex-col items-center gap-4 p-6 bg-white border border-slate-100 rounded-[3px] text-center transition-all hover:-translate-y-2 hover:shadow-xl hover:border-[var(--color-primary)] group">
@@ -253,23 +253,10 @@ export default function MyWorkspacePage() {
               </div>
               <div className="space-y-1">
                   <span className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-widest">{a.label}</span>
-                  <p className="text-[7px] font-bold text-slate-300 uppercase tracking-tighter">DIRECT_LINK_CMD</p>
               </div>
             </Link>
           ))}
         </div>
-      </div>
-      
-      {/* Footer Heuristic */}
-      <div className="flex items-center justify-between pt-4 opacity-30">
-          <div className="flex items-center gap-4">
-               <Terminal className="h-4 w-4" />
-               <span className="text-[9px] font-black uppercase tracking-[0.3em]">Personnel HUD v.5.0_PRO</span>
-          </div>
-          <div className="flex items-center gap-2">
-               <ShieldCheck className="h-3.5 w-3.5" />
-               <span className="text-[8px] font-black uppercase tracking-widest">Level 4 Auth Active</span>
-          </div>
       </div>
     </div>
   );

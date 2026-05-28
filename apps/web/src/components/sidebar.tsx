@@ -94,7 +94,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
     const SectionLabel = ({ label }: { label: string }) => (
         !isCollapsed ? (
-            <p className="text-[11px] font-bold text-white/40 uppercase tracking-tight px-3 mb-2 mt-4">
+            <p className="text-xs font-semibold uppercase tracking-widest px-3 mb-1 mt-5" style={{ color: 'rgba(255,255,255,0.85)' }}>
                 {label}
             </p>
         ) : <div className="h-4" />
@@ -123,12 +123,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 {/* Brand / Logo */}
                 <div className="flex items-center gap-3 px-4 py-6 mb-2">
                     <div className="w-8 h-8 rounded-[4px] bg-white flex items-center justify-center shrink-0">
-                        <span className="text-[var(--sidebar-bg)] font-black text-lg">E</span>
+                        <span className="font-black text-lg" style={{ color: 'var(--sidebar-bg)' }}>E</span>
                     </div>
                     {!isCollapsed && (
                         <div className="overflow-hidden">
-                            <p className="text-white font-bold text-lg leading-none tracking-tight">ESMP</p>
-                            <p className="text-white/50 text-[10px] mt-1 font-medium uppercase tracking-wider">Enterprise Pro</p>
+                            <p className="font-bold text-lg leading-none tracking-tight" style={{ color: '#ffffff' }}>ESMP</p>
+                            <p className="text-xs mt-1 font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>Enterprise Portal</p>
                         </div>
                     )}
                 </div>
