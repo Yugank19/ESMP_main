@@ -15,6 +15,12 @@ const MILESTONE_STATUS: Record<string, { bg: string; color: string; label: strin
   COMPLETED:   { bg: "#ecfdf5", color: "#059669", label: "Completed" },
 };
 
+const DELIVERABLE_STATUS: Record<string, { bg: string; color: string; label: string }> = {
+  PENDING_REVIEW:     { bg: '#fffbeb', color: '#d97706', label: 'Pending' },
+  APPROVED:           { bg: '#ecfdf5', color: '#059669', label: 'Approved' },
+  REVISION_REQUESTED: { bg: '#fef2f2', color: '#dc2626', label: 'Revision' },
+};
+
 export default function ClientProjectsPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -144,7 +150,7 @@ export default function ClientProjectsPage() {
                 {selectedProject.deliverables.length === 0 ? (
                   <div className="py-8 text-center text-sm text-slate-400">No deliverables yet</div>
                 ) : selectedProject.deliverables.slice(0, 6).map((d: any) => {
-                  const ds = { PENDING_REVIEW: { bg: '#fffbeb', color: '#d97706', label: 'Pending' }, APPROVED: { bg: '#ecfdf5', color: '#059669', label: 'Approved' }, REVISION_REQUESTED: { bg: '#fef2f2', color: '#dc2626', label: 'Revision' } }[d.status] || { bg: '#f1f5f9', color: '#64748b', label: d.status };
+                  const ds = DELIVERABLE_STATUS[d.status] || { bg: '#f1f5f9', color: '#64748b', label: d.status };
                   return (
                     <div key={d.id} className="flex items-center gap-3 px-5 py-3.5">
                       <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
